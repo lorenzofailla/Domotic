@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="create_run_jar" name="Create Runnable Jar for Project Domotic with libraries in sub-folder">
+    <!--this file was created by Eclipse Runnable JAR Export Wizard-->
+    <!--ANT 1.7 is required                                        -->
+    <!--define folder properties-->
+    <property name="dir.buildfile" value="."/>
+    <property name="dir.workspace" value="/home/lore-f/eclipse-workspace"/>
+    <property name="dir.jarfile" value="${dir.buildfile}"/>
+    <target name="create_run_jar">
+        <jar destfile="${dir.jarfile}/domotic.jar">
+            <manifest>
+                <attribute name="Main-Class" value="apps.java.loref.Domotic"/>
+                <attribute name="Class-Path" value=". domotic_lib/jterminal-1.0.1.jar domotic_lib/firebase-admin-5.3.0.jar domotic_lib/google-api-client-1.22.0.jar domotic_lib/google-oauth-client-1.22.0.jar domotic_lib/google-http-client-jackson2-1.22.0.jar domotic_lib/jackson-core-2.1.3.jar domotic_lib/google-api-client-gson-1.22.0.jar domotic_lib/google-http-client-gson-1.22.0.jar domotic_lib/gson-2.1.jar domotic_lib/google-http-client-1.22.0.jar domotic_lib/jsr305-1.3.9.jar domotic_lib/httpclient-4.0.1.jar domotic_lib/httpcore-4.0.1.jar domotic_lib/commons-logging-1.1.1.jar domotic_lib/commons-codec-1.3.jar domotic_lib/json-20160810.jar domotic_lib/guava-20.0.jar domotic_lib/google-cloud-storage-1.2.1.jar domotic_lib/google-cloud-core-1.2.1.jar domotic_lib/joda-time-2.9.2.jar domotic_lib/api-common-1.1.0.jar domotic_lib/gax-1.4.1.jar domotic_lib/auto-value-1.2.jar domotic_lib/threetenbp-1.3.3.jar domotic_lib/protobuf-java-util-3.3.0.jar domotic_lib/protobuf-java-3.3.0.jar domotic_lib/proto-google-common-protos-0.1.12.jar domotic_lib/proto-google-iam-v1-0.1.12.jar domotic_lib/google-cloud-core-http-1.2.1.jar domotic_lib/google-auth-library-credentials-0.7.0.jar domotic_lib/google-auth-library-oauth2-http-0.7.0.jar domotic_lib/google-http-client-appengine-1.21.0.jar domotic_lib/google-http-client-jackson-1.21.0.jar domotic_lib/jackson-core-asl-1.9.11.jar domotic_lib/google-api-services-storage-v1-rev100-1.22.0.jar domotic_lib/slf4j-api-1.7.25.jar domotic_lib/jcterm-0.0.11.jar domotic_lib/jsch-0.1.51.jar domotic_lib/application-1.0.jar domotic_lib/core-1.47.1.jar domotic_lib/guava-13.0.1.jar domotic_lib/jsr305-1.3.7.jar domotic_lib/mail-1.4.jar domotic_lib/activation-1.1.jar domotic_lib/google-http-client-jackson2-1.20.0.jar domotic_lib/google-oauth-client-jetty-1.20.0.jar domotic_lib/google-oauth-client-java6-1.20.0.jar domotic_lib/google-oauth-client-1.20.0.jar domotic_lib/google-http-client-1.20.0.jar domotic_lib/jetty-6.1.26.jar domotic_lib/jetty-util-6.1.26.jar domotic_lib/servlet-api-2.5-20081211.jar domotic_lib/google-api-services-youtube-v3-rev202-1.18.0-rc.jar domotic_lib/google-api-client-1.18.0-rc.jar domotic_lib/jsch-0.1.54.jar domotic_lib/jipcam-0.9.1.jar domotic_lib/log4j-1.2.13.jar domotic_lib/jmf-2.1.1e.jar domotic_lib/servlet-api-2.4.jar domotic_lib/commons-cli-1.0.jar domotic_lib/commons-logging-1.0.jar domotic_lib/commons-lang-1.0.jar domotic_lib/commons-httpclient-3.0-rc4.jar domotic_lib/junit-3.8.1.jar domotic_lib/commons-codec-1.2.jar"/>
+            </manifest>
+            <fileset dir="/home/lore-f/git/repository/Domotic/target/classes"/>
+            <fileset dir="${dir.workspace}/General Utilities Libraries/target/classes"/>
+            <fileset dir="${dir.workspace}/TerminalScreen/target/classes"/>
+            <fileset dir="${dir.workspace}/MotionComm/target/classes"/>
+            <fileset dir="/home/lore-f/git/repository/FirebaseCloudUploader/target/classes"/>
+            <fileset dir="${dir.workspace}/YouTubeComm/target/classes"/>
+            <fileset dir="${dir.workspace}/SocketResponder/bin"/>
+        </jar>
+        <delete dir="${dir.jarfile}/domotic_lib"/>
+        <mkdir dir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/grahamedgecombe/jterminal/jterminal/1.0.1/jterminal-1.0.1.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/google/firebase/firebase-admin/5.3.0/firebase-admin-5.3.0.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/google/api-client/google-api-client/1.22.0/google-api-client-1.22.0.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/google/oauth-client/google-oauth-client/1.22.0/google-oauth-client-1.22.0.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/google/http-client/google-http-client-jackson2/1.22.0/google-http-client-jackson2-1.22.0.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/fasterxml/jackson/core/jackson-core/2.1.3/jackson-core-2.1.3.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/google/api-client/google-api-client-gson/1.22.0/google-api-client-gson-1.22.0.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/google/http-client/google-http-client-gson/1.22.0/google-http-client-gson-1.22.0.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/google/code/gson/gson/2.1/gson-2.1.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/google/http-client/google-http-client/1.22.0/google-http-client-1.22.0.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/google/code/findbugs/jsr305/1.3.9/jsr305-1.3.9.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/org/apache/httpcomponents/httpclient/4.0.1/httpclient-4.0.1.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/org/apache/httpcomponents/httpcore/4.0.1/httpcore-4.0.1.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/commons-codec/commons-codec/1.3/commons-codec-1.3.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/org/json/json/20160810/json-20160810.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/google/guava/guava/20.0/guava-20.0.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/google/cloud/google-cloud-storage/1.2.1/google-cloud-storage-1.2.1.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/google/cloud/google-cloud-core/1.2.1/google-cloud-core-1.2.1.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/joda-time/joda-time/2.9.2/joda-time-2.9.2.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/google/api/api-common/1.1.0/api-common-1.1.0.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/google/api/gax/1.4.1/gax-1.4.1.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/google/auto/value/auto-value/1.2/auto-value-1.2.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/org/threeten/threetenbp/1.3.3/threetenbp-1.3.3.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/google/protobuf/protobuf-java-util/3.3.0/protobuf-java-util-3.3.0.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/google/protobuf/protobuf-java/3.3.0/protobuf-java-3.3.0.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/google/api/grpc/proto-google-common-protos/0.1.12/proto-google-common-protos-0.1.12.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/google/api/grpc/proto-google-iam-v1/0.1.12/proto-google-iam-v1-0.1.12.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/google/cloud/google-cloud-core-http/1.2.1/google-cloud-core-http-1.2.1.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/google/auth/google-auth-library-credentials/0.7.0/google-auth-library-credentials-0.7.0.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/google/auth/google-auth-library-oauth2-http/0.7.0/google-auth-library-oauth2-http-0.7.0.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/google/http-client/google-http-client-appengine/1.21.0/google-http-client-appengine-1.21.0.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/google/http-client/google-http-client-jackson/1.21.0/google-http-client-jackson-1.21.0.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/org/codehaus/jackson/jackson-core-asl/1.9.11/jackson-core-asl-1.9.11.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/google/apis/google-api-services-storage/v1-rev100-1.22.0/google-api-services-storage-v1-rev100-1.22.0.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/org/slf4j/slf4j-api/1.7.25/slf4j-api-1.7.25.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/net/java/linoleum/jcterm/0.0.11/jcterm-0.0.11.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/jcraft/jsch/0.1.51/jsch-0.1.51.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/net/java/linoleum/application/1.0/application-1.0.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/google/gdata/core/1.47.1/core-1.47.1.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/google/guava/guava/13.0.1/guava-13.0.1.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/google/code/findbugs/jsr305/1.3.7/jsr305-1.3.7.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/javax/mail/mail/1.4/mail-1.4.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/javax/activation/activation/1.1/activation-1.1.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/google/http-client/google-http-client-jackson2/1.20.0/google-http-client-jackson2-1.20.0.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/google/oauth-client/google-oauth-client-jetty/1.20.0/google-oauth-client-jetty-1.20.0.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/google/oauth-client/google-oauth-client-java6/1.20.0/google-oauth-client-java6-1.20.0.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/google/oauth-client/google-oauth-client/1.20.0/google-oauth-client-1.20.0.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/google/http-client/google-http-client/1.20.0/google-http-client-1.20.0.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/org/mortbay/jetty/jetty/6.1.26/jetty-6.1.26.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/org/mortbay/jetty/jetty-util/6.1.26/jetty-util-6.1.26.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/org/mortbay/jetty/servlet-api/2.5-20081211/servlet-api-2.5-20081211.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/google/apis/google-api-services-youtube/v3-rev202-1.18.0-rc/google-api-services-youtube-v3-rev202-1.18.0-rc.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/google/api-client/google-api-client/1.18.0-rc/google-api-client-1.18.0-rc.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/com/jcraft/jsch/0.1.54/jsch-0.1.54.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/net/sf/jipcam/jipcam/0.9.1/jipcam-0.9.1.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/log4j/log4j/1.2.13/log4j-1.2.13.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/javax/media/jmf/2.1.1e/jmf-2.1.1e.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/javax/servlet/servlet-api/2.4/servlet-api-2.4.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/commons-cli/commons-cli/1.0/commons-cli-1.0.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/commons-logging/commons-logging/1.0/commons-logging-1.0.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/commons-lang/commons-lang/1.0/commons-lang-1.0.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/commons-httpclient/commons-httpclient/3.0-rc4/commons-httpclient-3.0-rc4.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/junit/junit/3.8.1/junit-3.8.1.jar" todir="${dir.jarfile}/domotic_lib"/>
+        <copy file="/home/lore-f/.m2/repository/commons-codec/commons-codec/1.2/commons-codec-1.2.jar" todir="${dir.jarfile}/domotic_lib"/>
+    </target>
+</project>
