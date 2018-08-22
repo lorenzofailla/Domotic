@@ -143,7 +143,7 @@ public class DomoticCore {
 		public void onConnectionRestored() {
 
 			printLog(LogTopics.LOG_TOPIC_INCHK, "Internet connection available.");
-			
+
 			attachListener();
 
 		}
@@ -433,8 +433,7 @@ public class DomoticCore {
 		public void onLiveStreamCreated(String requestorID, String requestID, String liveStreamID,
 				String liveBroadcastID) {
 			/*
-			 * � stato creato un live stream
-			 * 
+			 * A live stream has been created
 			 */
 
 			printLog(LogTopics.LOG_TOPIC_VSURV,
@@ -683,8 +682,7 @@ public class DomoticCore {
 		printLog(LogTopics.LOG_TOPIC_INIT, "Checking internet connection...");
 		inetCheck.setListener(inetCheckListener);
 		inetCheck.init();
-		
-		
+
 		printLog(LogTopics.LOG_TOPIC_MAIN, "Session started");
 
 		// set the loopFlag value to keep the main loop alive
