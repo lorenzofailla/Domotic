@@ -44,6 +44,7 @@ import static apps.java.loref.GeneralUtilitiesLibrary.printLog;
 import static apps.java.loref.GeneralUtilitiesLibrary.readPlainTextFromFile;
 import static apps.java.loref.GeneralUtilitiesLibrary.sleepSafe;
 import static apps.java.loref.GeneralUtilitiesLibrary.encode;
+import static apps.java.loref.InetCheck.checkInetConnection;
 
 import static apps.java.loref.MotionComm.getEventJpegFileName;
 
@@ -100,19 +101,6 @@ public class DomoticCore {
     private final static String LOCAL_CMD_PREFIX = "file://";
     private final static String LOCAL_TCP_PREFIX = "tcp://";
 
-    private final static String LOG_TOPIC_INIT = "INIT";
-    private final static String LOG_TOPIC_INMSG = "INMSG";
-    private final static String LOG_TOPIC_OUTMSG = "OUTMSG";
-    private final static String LOG_TOPIC_CMDEXEC = "CMDEXEC";
-    private final static String LOG_TOPIC_MAIN = "MAIN";
-    private final static String LOG_TOPIC_EXCEPTION = "EXCEPTION";
-    private final static String LOG_TOPIC_ERROR = "ERROR";
-    private final static String LOG_TOPIC_WARNING = "WARNING";
-    private final static String LOG_TOPIC_TERM = "TERMINATION";
-    private final static String LOG_TOPIC_VSURV = "VIDEOSURVEILLANCE";
-    private final static String LOG_TOPIC_SHEXEC = "SHELLEXEC";
-    private final static String LOG_TOPIC_TCP = "TCP_IFACE";
-
     private final static long TICK_TIME_MS = 1000L; // milliseconds
     private final static long HEART_BEAT_MS = 60000L; // ms
 
@@ -147,6 +135,33 @@ public class DomoticCore {
     private boolean hasVideoSurveillance = false;
 
     /*
+     * --- internet connection check
+     */
+    InetCheck inetCheck = new InetCheck();
+    InetCheckListener inetCheckListener = new InetCheckListener() {
+
+	@Override
+	public void onConnectionRestored() {
+
+	    printLog(LogTopics.LOG_TOPIC_INCHK, "Internet connection available.");
+
+	}
+
+	@Override
+	public void onConnectionLost() {
+	    
+	    printLog(LogTopics.LOG_TOPIC_INCHK, "Internet connection NOT available.");
+
+	}
+
+	@Override
+	public void onCheck(boolean status) {
+
+	}
+
+    };
+
+    /*
      * VPN connection
      */
 
@@ -172,14 +187,14 @@ public class DomoticCore {
 	    tcpInitialized = true;
 
 	    // print a log
-	    printLog(LOG_TOPIC_INIT, String.format("TCP Listener initialized on port: %d.", port));
+	    printLog(LogTopics.LOG_TOPIC_TCP, String.format("TCP Listener initialized on port: %d.", port));
 
 	}
 
 	@Override
 	public void onConnected(String hostID) {
 	    // print a log
-	    printLog(LOG_TOPIC_TCP, String.format("New incoming TCP connection accepted: %s.", hostID));
+	    printLog(LogTopics.LOG_TOPIC_TCP, String.format("New incoming TCP connection accepted: %s.", hostID));
 
 	}
 
@@ -201,9 +216,10 @@ public class DomoticCore {
 	@Override
 	public void onDisconnect(String hostID, boolean byTimeout) {
 	    // print a log
-	    printLog(LOG_TOPIC_TCP, String.format("Client %s disconnected. ByTimeout=%s", hostID, byTimeout));
+	    printLog(LogTopics.LOG_TOPIC_TCP, String.format("Client %s disconnected. ByTimeout=%s", hostID, byTimeout));
 
 	}
+	
     };
 
     /*
@@ -276,18 +292,15 @@ public class DomoticCore {
 	@Override
 	public void onNewFrame(String cameraID, byte[] frameImageData, String destination) {
 
-	printLog(LOG_TOPIC_VSURV, String.format("Frame image received. Camera ID: %s; Image bytes: %d; Destination: %s", cameraID, frameImageData.length, destination));
+	    printLog(LogTopics.LOG_TOPIC_VSURV, String.format("Frame image received. Camera ID: %s; Image bytes: %d; Destination: %s", cameraID, frameImageData.length, destination));
 
 	    if (destination.startsWith("tcp://")) {
 		/*
 		 * sends the received camera data as a TCP REPLY
 		 */
 
-		RemoteCommand remoteCommand=new RemoteCommand(
-		                                              ReplyPrefix.FRAME_IMAGE_DATA.prefix(), 
-		                                              encode(String.format("%s|data=%s", cameraID, Base64.encodeBase64String(compress(frameImageData)))),
-		                                              "null");
-		                                              
+		RemoteCommand remoteCommand = new RemoteCommand(ReplyPrefix.FRAME_IMAGE_DATA.prefix(), encode(String.format("%s|data=%s", cameraID, Base64.encodeBase64String(compress(frameImageData)))), "null");
+
 		sendMessageToDevice(remoteCommand, destination, "");
 
 	    }
@@ -316,9 +329,9 @@ public class DomoticCore {
 		    public void onComplete(DatabaseError error, DatabaseReference ref) {
 
 			if (error == null) {
-			    printLog(LOG_TOPIC_VSURV, String.format("Frame successfully uploaded for camera id:%s.", cameraID));
+			    printLog(LogTopics.LOG_TOPIC_VSURV, String.format("Frame successfully uploaded for camera id:%s.", cameraID));
 			} else {
-			    printLog(LOG_TOPIC_ERROR, String.format("Error found while uploading for camera id:%s. Error message:\"%s\".", cameraID, error.getMessage()));
+			    printLog(LogTopics.LOG_TOPIC_ERROR, String.format("Error found while uploading for camera id:%s. Error message:\"%s\".", cameraID, error.getMessage()));
 			}
 
 			frameUploadReady.remove(cameraID);
@@ -358,7 +371,7 @@ public class DomoticCore {
 	     * 
 	     */
 
-	    printLog(LOG_TOPIC_VSURV, String.format("Youtube live stream created for camera ID: %s, Live stream ID: %s, Broadcast ID: %s", requestID, liveStreamID, liveBroadcastID));
+	    printLog(LogTopics.LOG_TOPIC_VSURV, String.format("Youtube live stream created for camera ID: %s, Live stream ID: %s, Broadcast ID: %s", requestID, liveStreamID, liveBroadcastID));
 
 	    String inputStreamURL = motionComm.getStreamFullURL(requestID);
 	    String shellCommand[] = new String[] { "/bin/sh", "-c", String.format("yt-stream %s %d %s %s %s", inputStreamURL, motionComm.getCameraStreamFPS(requestID), "05:00", liveStreamID, requestID) };
@@ -370,7 +383,7 @@ public class DomoticCore {
 		// lancia il comando bash per avviare lo streaming
 		Runtime.getRuntime().exec(shellCommand);
 
-		printLog(LOG_TOPIC_VSURV, String.format("Youtube live stream started for camera ID: %s, Live stream ID: %s, Broadcast ID: %s", requestID, liveStreamID, liveBroadcastID));
+		printLog(LogTopics.LOG_TOPIC_VSURV, String.format("Youtube live stream started for camera ID: %s, Live stream ID: %s, Broadcast ID: %s", requestID, liveStreamID, liveBroadcastID));
 
 		// aggiorna i dati relativi allo streaming
 		setCameraLiveBroadcastData(requestID, liveBroadcastID);
@@ -467,7 +480,7 @@ public class DomoticCore {
 
 	    }
 
-	    printLog(LOG_TOPIC_MAIN, "End of session");
+	    printLog(LogTopics.LOG_TOPIC_MAIN, "End of session");
 
 	    System.exit(0);
 
@@ -477,18 +490,18 @@ public class DomoticCore {
 
     public DomoticCore() {
 
-	printLog(LOG_TOPIC_INIT, "Domotic for linux desktop - by Lorenzo Failla");
+	printLog(LogTopics.LOG_TOPIC_INIT, "Domotic for linux desktop - by Lorenzo Failla");
 
 	/*
 	 * Retrieves all the parameters values from the configuration file
 	 */
 
-	printLog(LOG_TOPIC_INIT, "Configuration file reading started.");
+	printLog(LogTopics.LOG_TOPIC_INIT, "Configuration file reading started.");
 
 	if (!getConfiguration())
 	    System.exit(1);
 
-	printLog(LOG_TOPIC_INIT, "Configuration file reading successfully completed.");
+	printLog(LogTopics.LOG_TOPIC_INIT, "Configuration file reading successfully completed.");
 
 	/*
 	 * inizializza l'interfaccia TCP
@@ -501,30 +514,30 @@ public class DomoticCore {
 	 */
 
 	int[] localCommandPurgeResult = purgeLocalCommands();
-	printLog(LOG_TOPIC_INIT, String.format("%d obsolete local command(s) found.", localCommandPurgeResult[0]));
+	printLog(LogTopics.LOG_TOPIC_INIT, String.format("%d obsolete local command(s) found.", localCommandPurgeResult[0]));
 
 	if (localCommandPurgeResult[1] > 0) {
-	    printLog(LOG_TOPIC_INIT, String.format("[!] It was not possible to delete %d obsolete local command(s).\nCheck directory \"%s\" for issues", localCommandPurgeResult[1], DEFAULT_LOCAL_COMMAND_DIRECTORY));
+	    printLog(LogTopics.LOG_TOPIC_INIT, String.format("[!] It was not possible to delete %d obsolete local command(s).\nCheck directory \"%s\" for issues", localCommandPurgeResult[1], DEFAULT_LOCAL_COMMAND_DIRECTORY));
 	    System.exit(1);
 
 	} else {
 
-	    printLog(LOG_TOPIC_INIT, "All obsolete local command(s) have been purged");
+	    printLog(LogTopics.LOG_TOPIC_INIT, "All obsolete local command(s) have been purged");
 
 	}
 
 	// Available services probe
-	printLog(LOG_TOPIC_INIT, "Available services probing started.");
+	printLog(LogTopics.LOG_TOPIC_INIT, "Available services probing started.");
 	retrieveServices();
-	printLog(LOG_TOPIC_INIT, "Available services probing completed.");
+	printLog(LogTopics.LOG_TOPIC_INIT, "Available services probing completed.");
 
 	// Firebase Database connection
-	printLog(LOG_TOPIC_INIT, "Connection to Firebase Database started.");
+	printLog(LogTopics.LOG_TOPIC_INIT, "Connection to Firebase Database started.");
 
 	if (!connectToFirebaseDatabase())
 	    System.exit(1);
 
-	printLog(LOG_TOPIC_INIT, "Connection to Firebase Database successfully completed.");
+	printLog(LogTopics.LOG_TOPIC_INIT, "Connection to Firebase Database successfully completed.");
 
 	/*
 	 * verifica di avere le credenziali per l'accesso a Youtube
@@ -532,7 +545,7 @@ public class DomoticCore {
 
 	if (youTubeJSONLocation != "" && youTubeOAuthFolder != "") {
 
-	    printLog(LOG_TOPIC_INIT, "Checking Youtube credentials...");
+	    printLog(LogTopics.LOG_TOPIC_INIT, "Checking Youtube credentials...");
 
 	    // inizializza uno YouTubeComm e assegna il listener
 	    try {
@@ -540,20 +553,20 @@ public class DomoticCore {
 		youTubeComm = new YouTubeComm(APP_NAME, youTubeJSONLocation, youTubeOAuthFolder);
 		youTubeComm.setListener(youTubeCommListener);
 
-		printLog(LOG_TOPIC_INIT, "Youtube credentials successfully verified.");
+		printLog(LogTopics.LOG_TOPIC_INIT, "Youtube credentials successfully verified.");
 
 	    } catch (YouTubeNotAuthorizedException e) {
 
-		printLog(LOG_TOPIC_INIT, "Failed to verify Youtube credentials. " + e.getMessage());
+		printLog(LogTopics.LOG_TOPIC_INIT, "Failed to verify Youtube credentials. " + e.getMessage());
 	    }
 
 	} else {
 
-	    printLog(LOG_TOPIC_INIT, "WARNING! Cannot Youtube credentials. Please make sure \"YouTubeJSONLocation\" and \"YouTubeOAuthFolder\" are specified in the configuration file.");
+	    printLog(LogTopics.LOG_TOPIC_INIT, "WARNING! Cannot Youtube credentials. Please make sure \"YouTubeJSONLocation\" and \"YouTubeOAuthFolder\" are specified in the configuration file.");
 	}
 
 	// Device registration
-	printLog(LOG_TOPIC_INIT, "Device registration started.");
+	printLog(LogTopics.LOG_TOPIC_INIT, "Device registration started.");
 	deviceRegistered = false;
 
 	int nOfVideoSurveillanceCameras;
@@ -582,16 +595,16 @@ public class DomoticCore {
 
 	}
 
-	printLog(LOG_TOPIC_INIT, "Device registration successfully completed.");
+	printLog(LogTopics.LOG_TOPIC_INIT, "Device registration successfully completed.");
 
 	// start the listener for incoming messages
-	printLog(LOG_TOPIC_INIT, "Listener initialization started.");
+	printLog(LogTopics.LOG_TOPIC_INIT, "Listener initialization started.");
 
 	initListener();
 
-	printLog(LOG_TOPIC_INIT, "Listener initialization successfully completed.");
+	printLog(LogTopics.LOG_TOPIC_INIT, "Listener initialization successfully completed.");
 
-	printLog(LOG_TOPIC_MAIN, "Session started");
+	printLog(LogTopics.LOG_TOPIC_MAIN, "Session started");
 
 	// set the loopFlag value to keep the main loop alive
 	loopFlag = true;
@@ -604,14 +617,14 @@ public class DomoticCore {
 		/* here the code to be ran to have a clean exit */
 
 		/* adds a log */
-		printLog(LOG_TOPIC_TERM, "Termination request catched.");
+		printLog(LogTopics.LOG_TOPIC_TERM, "Termination request catched.");
 
 		/* if specified, shuts down the video surveillance daemon */
 		if (hasVideoSurveillance && !videoSurveillanceDaemonShutdownCommand.equals("")) {
 		    try {
 
 			parseShellCommand(videoSurveillanceDaemonShutdownCommand);
-			printLog(LOG_TOPIC_TERM, "Successfully applied \'" + videoSurveillanceDaemonShutdownCommand + "\' command to VideoSurveillance daemon.");
+			printLog(LogTopics.LOG_TOPIC_TERM, "Successfully applied \'" + videoSurveillanceDaemonShutdownCommand + "\' command to VideoSurveillance daemon.");
 
 		    } catch (IOException | InterruptedException e) {
 			printErrorLog(e);
@@ -655,7 +668,7 @@ public class DomoticCore {
 
 	String logContent = String.format("from:\'%s\' hdr:\'%s\' bdy:\'%s\'", incomingCommand.getReplyto(), incomingCommand.getHeader(), incomingCommand.getBody()).replace("\n", "\\n");
 
-	printLog(LOG_TOPIC_INMSG, logContent);
+	printLog(LogTopics.LOG_TOPIC_INMSG, logContent);
 
 	switch (incomingCommand.getHeader()) {
 
@@ -753,7 +766,7 @@ public class DomoticCore {
 		try {
 
 		    parseShellCommand("wakeonlan " + wolDevices[deviceId]);
-		    printLog(LOG_TOPIC_CMDEXEC, "\'wakeonlan\' command sent to device ID\'" + deviceId + "\':, MAC address:\'" + wolDevices[deviceId] + "\'");
+		    printLog(LogTopics.LOG_TOPIC_CMDEXEC, "\'wakeonlan\' command sent to device ID\'" + deviceId + "\':, MAC address:\'" + wolDevices[deviceId] + "\'");
 
 		} catch (IOException | InterruptedException e) {
 
@@ -883,13 +896,13 @@ public class DomoticCore {
 
 		    // c'è già una richiesta in corso. stampa un messaggio di
 		    // log
-		    printLog(LOG_TOPIC_VSURV, "Live streaming already requested for camera ID: " + incomingCommand.getBody());
+		    printLog(LogTopics.LOG_TOPIC_VSURV, "Live streaming already requested for camera ID: " + incomingCommand.getBody());
 
 		} else {
 
 		    // non c'è una richiesta in corso per il thread specificato.
 		    // registra la richiesta e avvia la creazione dello stream
-		    printLog(LOG_TOPIC_VSURV, String.format("Live streaming request registered for requestor:\"%s\", camera ID: \"%s\"", incomingCommand.getBody(), incomingCommand.getReplyto()));
+		    printLog(LogTopics.LOG_TOPIC_VSURV, String.format("Live streaming request registered for requestor:\"%s\", camera ID: \"%s\"", incomingCommand.getBody(), incomingCommand.getReplyto()));
 		    youTubeLiveStreamRequestors.put(incomingCommand.getReplyto(), incomingCommand.getBody());
 
 		    // aggiorna i dati relativi allo streaming
@@ -919,7 +932,7 @@ public class DomoticCore {
 
 		// non ci sono richiedenti per il thread ID specificato
 
-		printLog(LOG_TOPIC_CMDEXEC, String.format("No more requestors for camera ID %s. Streaming will terminate.", incomingCommand.getBody()));
+		printLog(LogTopics.LOG_TOPIC_CMDEXEC, String.format("No more requestors for camera ID %s. Streaming will terminate.", incomingCommand.getBody()));
 		// ferma l'esecuzione dello streaming
 
 		try {
@@ -927,7 +940,7 @@ public class DomoticCore {
 		    // kill del process id relativo al thread contenuto nel
 		    // corpo del messaggio
 
-		    printLog(LOG_TOPIC_SHEXEC, "yt-stopstream " + incomingCommand.getBody());
+		    printLog(LogTopics.LOG_TOPIC_SHEXEC, "yt-stopstream " + incomingCommand.getBody());
 		    parseShellCommand("yt-stopstream " + incomingCommand.getBody());
 
 		} catch (IOException | InterruptedException e) {
@@ -938,7 +951,7 @@ public class DomoticCore {
 
 	    } else {
 
-		printLog(LOG_TOPIC_CMDEXEC, String.format("There are still requestors for camera ID %s. Streaming will continue.", incomingCommand.getBody()));
+		printLog(LogTopics.LOG_TOPIC_CMDEXEC, String.format("There are still requestors for camera ID %s. Streaming will continue.", incomingCommand.getBody()));
 
 	    }
 
@@ -971,7 +984,7 @@ public class DomoticCore {
 	    youTubeLiveStreamRequestors.values().remove(incomingCommand.getBody());
 
 	    // rimuove il live broadcast dalla mappa
-	    printLog(LOG_TOPIC_CMDEXEC, String.format("Removing Youtube live broadcast: \"%s\"", youTubeLiveBroadcasts.get(incomingCommand.getBody())));
+	    printLog(LogTopics.LOG_TOPIC_CMDEXEC, String.format("Removing Youtube live broadcast: \"%s\"", youTubeLiveBroadcasts.get(incomingCommand.getBody())));
 
 	    youTubeComm.deleteLiveBroadcast(youTubeLiveBroadcasts.get(incomingCommand.getBody()));
 
@@ -1083,12 +1096,12 @@ public class DomoticCore {
 	// eseguire l'operazione
 
 	case "__shutdown":
-	    printLog(LOG_TOPIC_MAIN, "Shutdown; Requested by: " + rc.getReplyto());
+	    printLog(LogTopics.LOG_TOPIC_MAIN, "Shutdown; Requested by: " + rc.getReplyto());
 	    removeCommand(commandID, SHUTDOWN);
 	    break;
 
 	case "__reboot":
-	    printLog(LOG_TOPIC_MAIN, "Reboot; Requested by: " + rc.getReplyto());
+	    printLog(LogTopics.LOG_TOPIC_MAIN, "Reboot; Requested by: " + rc.getReplyto());
 	    removeCommand(commandID, REBOOT);
 	    break;
 
@@ -1130,7 +1143,7 @@ public class DomoticCore {
 	    String sendStatus = "TCP OK.";
 
 	    // stampa un messaggio di log
-	    printLog(LOG_TOPIC_OUTMSG, "to:\'" + device + "\' hdr:\'" + message.getHeader() + "\' bdy:\'" + message.getBody() + "\' sts:\'" + sendStatus + "\'");
+	    printLog(LogTopics.LOG_TOPIC_OUTMSG, "to:\'" + device + "\' hdr:\'" + message.getHeader() + "\' bdy:\'" + message.getBody() + "\' sts:\'" + sendStatus + "\'");
 
 	} else {
 	    /*
@@ -1161,7 +1174,7 @@ public class DomoticCore {
 		    }
 
 		    // stampa un messaggio di log
-		    printLog(LOG_TOPIC_OUTMSG, "to:\'" + device + "\' hdr:\'" + message.getHeader() + "\' bdy:\'" + message.getBody() + "\' sts:\'" + sendStatus + "\'");
+		    printLog(LogTopics.LOG_TOPIC_OUTMSG, "to:\'" + device + "\' hdr:\'" + message.getHeader() + "\' bdy:\'" + message.getBody() + "\' sts:\'" + sendStatus + "\'");
 
 		    removeCommand(idToRemove, -1);
 
@@ -1255,31 +1268,31 @@ public class DomoticCore {
 
     private void retrieveServices() {
 
-	printLog(LOG_TOPIC_INIT, "\'uptime\' check started.");
+	printLog(LogTopics.LOG_TOPIC_INIT, "\'uptime\' check started.");
 	try {
 
 	    parseShellCommand("uptime");
-	    printLog(LOG_TOPIC_INIT, "\'uptime\' check successfully completed.");
+	    printLog(LogTopics.LOG_TOPIC_INIT, "\'uptime\' check successfully completed.");
 	    hasDirectoryNavigation = true;
 
 	} catch (IOException | InterruptedException e) {
 
-	    printLog(LOG_TOPIC_INIT, "\'uptime\' check failed. " + e.getMessage());
+	    printLog(LogTopics.LOG_TOPIC_INIT, "\'uptime\' check failed. " + e.getMessage());
 	    hasDirectoryNavigation = false;
 
 	}
 
 	if (allowTorrentManagement) {
 
-	    printLog(LOG_TOPIC_INIT, "\'transmission-daemon\' check started.");
+	    printLog(LogTopics.LOG_TOPIC_INIT, "\'transmission-daemon\' check started.");
 	    try {
 		parseShellCommand("transmission-remote -n transmission:transmission -l");
-		printLog(LOG_TOPIC_INIT, "\'transmission-daemon\' successfully completed.");
+		printLog(LogTopics.LOG_TOPIC_INIT, "\'transmission-daemon\' successfully completed.");
 		hasTorrent = true;
 
 	    } catch (IOException | InterruptedException e) {
 
-		printLog(LOG_TOPIC_INIT, "\'transmission-daemon\' successfully completed. " + e.getMessage());
+		printLog(LogTopics.LOG_TOPIC_INIT, "\'transmission-daemon\' successfully completed. " + e.getMessage());
 		hasTorrent = false;
 
 	    }
@@ -1288,17 +1301,17 @@ public class DomoticCore {
 
 	if (allowVideoSurveillanceManagement) {
 
-	    printLog(LOG_TOPIC_INIT, "\'Video surveillance daemon [motion]\' check started.");
+	    printLog(LogTopics.LOG_TOPIC_INIT, "\'Video surveillance daemon [motion]\' check started.");
 
 	    hasVideoSurveillance = checkVideoSurveillance();
 
 	    if (hasVideoSurveillance) {
 
-		printLog(LOG_TOPIC_INIT, "\'Video surveillance daemon [motion]\' check successfully completed.");
+		printLog(LogTopics.LOG_TOPIC_INIT, "\'Video surveillance daemon [motion]\' check successfully completed.");
 
 	    } else {
 
-		printLog(LOG_TOPIC_INIT, "\'Video surveillance daemon [motion]\' check failed.");
+		printLog(LogTopics.LOG_TOPIC_INIT, "\'Video surveillance daemon [motion]\' check failed.");
 
 	    }
 
@@ -1394,7 +1407,7 @@ public class DomoticCore {
 	// inizializza la connessione allo storage
 	Bucket storageBucket = StorageClient.getInstance().bucket();
 
-	printLog(LOG_TOPIC_CMDEXEC, "Upload of file\'" + fileToUpload.getName() + "\' to cloud storage started.");
+	printLog(LogTopics.LOG_TOPIC_CMDEXEC, "Upload of file\'" + fileToUpload.getName() + "\' to cloud storage started.");
 
 	try {
 
@@ -1409,7 +1422,7 @@ public class DomoticCore {
 		    // inizia l'upload
 		    Blob uploadInfo = storageBucket.create("Users/lorenzofailla/uploads/" + fileToUpload.getName(), inputStreamToUpload);
 
-		    printLog(LOG_TOPIC_CMDEXEC, "Upload of file\'" + fileToUpload.getName() + "\' to cloud storage successfully completed.");
+		    printLog(LogTopics.LOG_TOPIC_CMDEXEC, "Upload of file\'" + fileToUpload.getName() + "\' to cloud storage successfully completed.");
 
 		    // notifica l'upload del file
 		    notifyFileUpload(new FileInCloudStorage(getTimeStamp().toString(), fileToUpload.getName(), requestor, uploadInfo.getMediaLink(), uploadInfo.getSize(), 0));
@@ -1444,7 +1457,7 @@ public class DomoticCore {
 
 	} catch (IOException | InterruptedException e) {
 
-	    printLog(LOG_TOPIC_EXCEPTION, e.getMessage());
+	    printLog(LogTopics.LOG_TOPIC_EXCEPTION, e.getMessage());
 
 	}
 
@@ -1551,11 +1564,11 @@ public class DomoticCore {
 				try {
 
 				    parseShellCommand("sudo chmod 777 " + argument);
-				    printLog(LOG_TOPIC_INIT, "Successfully chmodded \'" + argument + "\'");
+				    printLog(LogTopics.LOG_TOPIC_INIT, "Successfully chmodded \'" + argument + "\'");
 
 				} catch (InterruptedException e) {
 
-				    printLog(LOG_TOPIC_INIT, "Unable to chmod \'" + argument + "\': " + e.getMessage());
+				    printLog(LogTopics.LOG_TOPIC_INIT, "Unable to chmod \'" + argument + "\': " + e.getMessage());
 				}
 
 				break;
@@ -1563,10 +1576,10 @@ public class DomoticCore {
 			    case "VideoSurveillanceDaemonAction":
 				try {
 				    parseShellCommand(argument);
-				    printLog(LOG_TOPIC_INIT, "Successfully applied \'" + argument + "\' command to VideoSurveillance daemon.");
+				    printLog(LogTopics.LOG_TOPIC_INIT, "Successfully applied \'" + argument + "\' command to VideoSurveillance daemon.");
 				} catch (InterruptedException e) {
 
-				    printLog(LOG_TOPIC_INIT, "Warning! unable to apply \'" + argument + "\' command to VideoSurveillance daemon: " + e.getMessage());
+				    printLog(LogTopics.LOG_TOPIC_INIT, "Warning! unable to apply \'" + argument + "\' command to VideoSurveillance daemon: " + e.getMessage());
 				}
 				break;
 
@@ -1584,7 +1597,7 @@ public class DomoticCore {
 				    wolDevList.add(args[1]);
 				} else {
 
-				    printLog(LOG_TOPIC_INIT, "Warning! Expected {Device Name}_{Device MAC Address} at line " + lineIndex + ". Found: " + args.length + " splits. Skipping");
+				    printLog(LogTopics.LOG_TOPIC_INIT, "Warning! Expected {Device Name}_{Device MAC Address} at line " + lineIndex + ". Found: " + args.length + " splits. Skipping");
 				}
 
 				break;
@@ -1621,17 +1634,17 @@ public class DomoticCore {
 				break;
 
 			    default:
-				printLog(LOG_TOPIC_INIT, "Unknown command \'" + command + "\' at line \'" + lineIndex + "\'. Please check and try again.");
+				printLog(LogTopics.LOG_TOPIC_INIT, "Unknown command \'" + command + "\' at line \'" + lineIndex + "\'. Please check and try again.");
 				br.close();
 				return false;
 			    }
 
-			    printLog(LOG_TOPIC_INIT, String.format("Parameter \"%s\"; value=\"%s\"", command, argument));
+			    printLog(LogTopics.LOG_TOPIC_INIT, String.format("Parameter \"%s\"; value=\"%s\"", command, argument));
 
 			} else {
 
 			    // errore di sintassi
-			    printLog(LOG_TOPIC_INIT, "Syntax error, please check line \'" + lineIndex + "\' in configuration file and try again.");
+			    printLog(LogTopics.LOG_TOPIC_INIT, "Syntax error, please check line \'" + lineIndex + "\' in configuration file and try again.");
 			    br.close();
 			    return false;
 
@@ -1655,32 +1668,32 @@ public class DomoticCore {
 	    boolean configurationComplete = true;
 
 	    if (groupName == "") {
-		printLog(LOG_TOPIC_INIT, "No group name specified. Cannot continue.");
+		printLog(LogTopics.LOG_TOPIC_INIT, "No group name specified. Cannot continue.");
 		configurationComplete = false;
 	    }
 
 	    if (jsonAuthFileLocation == "") {
-		printLog(LOG_TOPIC_INIT, "No JSON auth file location specified. Cannot continue.");
+		printLog(LogTopics.LOG_TOPIC_INIT, "No JSON auth file location specified. Cannot continue.");
 		configurationComplete = false;
 	    }
 
 	    if (firebaseDatabaseURL == "") {
-		printLog(LOG_TOPIC_INIT, "No Firebase database location specified. Cannot continue.");
+		printLog(LogTopics.LOG_TOPIC_INIT, "No Firebase database location specified. Cannot continue.");
 		configurationComplete = false;
 	    }
 
 	    if (storageBucketAddress == "") {
-		printLog(LOG_TOPIC_INIT, "No Firebase storage bucket address specified. Cannot continue.");
+		printLog(LogTopics.LOG_TOPIC_INIT, "No Firebase storage bucket address specified. Cannot continue.");
 		configurationComplete = false;
 	    }
 
 	    if (allowVideoSurveillanceManagement && videoSurveillanceServerAddress == "") {
-		printLog(LOG_TOPIC_INIT, "No video surveillance server address specified. Cannot continue.");
+		printLog(LogTopics.LOG_TOPIC_INIT, "No video surveillance server address specified. Cannot continue.");
 		configurationComplete = false;
 	    }
 
 	    if (allowVideoSurveillanceManagement && videoSurveillanceServerControlPort == -1) {
-		printLog(LOG_TOPIC_INIT, "No video surveillance server control port specified. Cannot continue.");
+		printLog(LogTopics.LOG_TOPIC_INIT, "No video surveillance server control port specified. Cannot continue.");
 		configurationComplete = false;
 
 	    }
@@ -1692,7 +1705,7 @@ public class DomoticCore {
 
 	} catch (IOException e) {
 
-	    printLog(LOG_TOPIC_INIT, e.getMessage() + " Make sure configuration file exists and is readable at specified location: \'" + CONF_FILE_LOCATION + "\'");
+	    printLog(LogTopics.LOG_TOPIC_INIT, e.getMessage() + " Make sure configuration file exists and is readable at specified location: \'" + CONF_FILE_LOCATION + "\'");
 	    return false;
 
 	}
@@ -1906,7 +1919,7 @@ public class DomoticCore {
 		String dataString = Base64.encodeBase64String(bytes);
 
 		slotData.put(slots + "", dataString);
-		printLog(LOG_TOPIC_CMDEXEC, "Uploading file \'" + fileName + "' as dataslot. " + slots + " processed.");
+		printLog(LogTopics.LOG_TOPIC_CMDEXEC, "Uploading file \'" + fileName + "' as dataslot. " + slots + " processed.");
 
 	    }
 
@@ -1926,13 +1939,13 @@ public class DomoticCore {
 		public void onComplete(DatabaseError error, DatabaseReference ref) {
 
 		    if (error != null) {
-			printLog(LOG_TOPIC_CMDEXEC, "Upload of file \'" + fileName + "' as dataslot terminated with error. Error code: \'" + error.getCode() + "\', error message: \'" + error.getMessage() + "\'");
+			printLog(LogTopics.LOG_TOPIC_CMDEXEC, "Upload of file \'" + fileName + "' as dataslot terminated with error. Error code: \'" + error.getCode() + "\', error message: \'" + error.getMessage() + "\'");
 
 		    } else {
 
 			sendMessageToDevice(new RemoteCommand(ReplyPrefix.FILE_READY_FOR_DOWNLOAD.prefix(), childTimeStamp, null), deviceToReply, null);
 
-			printLog(LOG_TOPIC_CMDEXEC, "Upload of file \'" + fileName + "' as dataslot successfully terminated.");
+			printLog(LogTopics.LOG_TOPIC_CMDEXEC, "Upload of file \'" + fileName + "' as dataslot successfully terminated.");
 
 		    }
 
@@ -1955,14 +1968,14 @@ public class DomoticCore {
 
     private void initializeSSHShell(String remoteDev) {
 
-	printLog(LOG_TOPIC_CMDEXEC, "Initializing secure shell session with device \'" + remoteDev + "\'");
+	printLog(LogTopics.LOG_TOPIC_CMDEXEC, "Initializing secure shell session with device \'" + remoteDev + "\'");
 
 	sshShell = new SSHShell(sshHost, sshUsername, sshPassword, sshPort);
 	sshShell.setListener(new SSHShellListener() {
 
 	    @Override
 	    public void onConnected() {
-		printLog(LOG_TOPIC_CMDEXEC, "Successfully connected secure shell session with device \'" + remoteDev + "\'");
+		printLog(LogTopics.LOG_TOPIC_CMDEXEC, "Successfully connected secure shell session with device \'" + remoteDev + "\'");
 
 		sendMessageToDevice(new RemoteCommand(ReplyPrefix.SSH_SHELL_READY.prefix(), remoteDev, "null"), remoteDev, null);
 
@@ -1978,7 +1991,7 @@ public class DomoticCore {
 
 	    @Override
 	    public void onCreated() {
-		printLog(LOG_TOPIC_CMDEXEC, "Successfully created secure shell session with device \'" + remoteDev + "\'");
+		printLog(LogTopics.LOG_TOPIC_CMDEXEC, "Successfully created secure shell session with device \'" + remoteDev + "\'");
 		sshShell.connect();
 
 	    }
@@ -2025,7 +2038,7 @@ public class DomoticCore {
 
 	if (!MotionComm.isMotionInstalled()) {
 
-	    printLog(LOG_TOPIC_WARNING, "\'motion\' is not installed on this host.You may install \'motion\' by typing \'sudo apt-get install motion\'Videosurveillance features are disabled on this host.");
+	    printLog(LogTopics.LOG_TOPIC_WARNING, "\'motion\' is not installed on this host.You may install \'motion\' by typing \'sudo apt-get install motion\'Videosurveillance features are disabled on this host.");
 	    return false;
 	}
 
@@ -2035,7 +2048,7 @@ public class DomoticCore {
 
 	if (motionComm.isHTMLOutputEnabled()) {
 
-	    printLog(LOG_TOPIC_WARNING, "\'motion\' is installed on this host, but output in HTML format is enabled. For the domotic-motion interface to run properly, motion output has to be in plain format. You may enable the plain output by setting \'webcontrol_html_output off\' in your motion configuration file.\nVideosurveillance features are disabled on this host.");
+	    printLog(LogTopics.LOG_TOPIC_WARNING, "\'motion\' is installed on this host, but output in HTML format is enabled. For the domotic-motion interface to run properly, motion output has to be in plain format. You may enable the plain output by setting \'webcontrol_html_output off\' in your motion configuration file.\nVideosurveillance features are disabled on this host.");
 	    motionComm.setListener(null);
 	    motionComm = null;
 	    return false;
@@ -2046,14 +2059,14 @@ public class DomoticCore {
 	// System.out.println(nOfThreads);
 	if (nOfThreads < 1) {
 
-	    printLog(LOG_TOPIC_WARNING, "No active threads found on motion daemon.");
+	    printLog(LogTopics.LOG_TOPIC_WARNING, "No active threads found on motion daemon.");
 	    motionComm.setListener(null);
 	    motionComm = null;
 	    return false;
 
 	} else {
 
-	    printLog(LOG_TOPIC_INIT, String.format("%d active threads found on motion daemon.", nOfThreads));
+	    printLog(LogTopics.LOG_TOPIC_INIT, String.format("%d active threads found on motion daemon.", nOfThreads));
 	    return true;
 	}
 
@@ -2085,7 +2098,7 @@ public class DomoticCore {
 	String eventPictureData = Base64.encodeBase64String(compress(getFileAsBytes(getEventJpegFileName(paramsMap.get("file_path")))));
 
 	// print log entry
-	printLog(LOG_TOPIC_VSURV, String.format("Starting upload of video file for motion event on bucket: \"%s\"", remotePosition));
+	printLog(LogTopics.LOG_TOPIC_VSURV, String.format("Starting upload of video file for motion event on bucket: \"%s\"", remotePosition));
 
 	// set up the FirebaseCloudUploader and start the upload operation
 	FirebaseCloudUploader uploader = new FirebaseCloudUploader(paramsMap.get("file_path"), remotePosition).setListener(new FirebaseCloudUploaderListener() {
@@ -2105,7 +2118,7 @@ public class DomoticCore {
 		 */
 
 		// print log entry
-		printLog(LOG_TOPIC_VSURV, "Video file for motion event successfully uploaded (" + info.getSize() + " bytes).");
+		printLog(LogTopics.LOG_TOPIC_VSURV, "Video file for motion event successfully uploaded (" + info.getSize() + " bytes).");
 
 		// retrieve the URL of the video file of the event
 		String downloadURL = FirebaseCloudUploader.getSignedUrl(info, DEFAULT_MOTION_VIDEO_LINK_TIMEOUT, TimeUnit.DAYS, jsonAuthFileLocation);
@@ -2187,11 +2200,11 @@ public class DomoticCore {
 
 			    }
 
-			    printLog(LOG_TOPIC_VSURV, "Data for motion event successfully uploaded. Notification sent - " + notificationID);
+			    printLog(LogTopics.LOG_TOPIC_VSURV, "Data for motion event successfully uploaded. Notification sent - " + notificationID);
 
 			} else {
 
-			    printLog(LOG_TOPIC_ERROR, String.format("Error during motion event data upload: %s", error.getMessage()));
+			    printLog(LogTopics.LOG_TOPIC_ERROR, String.format("Error during motion event data upload: %s", error.getMessage()));
 
 			}
 
@@ -2321,7 +2334,7 @@ public class DomoticCore {
 		allowLastHeartBeatUpdate = true;
 
 		if (error != null) {
-		    printLog(LOG_TOPIC_ERROR, String.format("Error during Heartbeat time update: \"%s\"", error.getMessage()));
+		    printLog(LogTopics.LOG_TOPIC_ERROR, String.format("Error during Heartbeat time update: \"%s\"", error.getMessage()));
 		}
 
 	    }
@@ -2342,7 +2355,7 @@ public class DomoticCore {
 	    parseShellCommand("/usr/local/bin/tmate-addr");
 
 	    // print log
-	    printLog(LOG_TOPIC_CMDEXEC, String.format("tmate session refreshed"));
+	    printLog(LogTopics.LOG_TOPIC_CMDEXEC, String.format("tmate session refreshed"));
 
 	} catch (IOException e) {
 
@@ -2370,7 +2383,7 @@ public class DomoticCore {
 		public void onComplete(DatabaseError error, DatabaseReference ref) {
 
 		    if (error != null) {
-			printLog(LOG_TOPIC_ERROR, error.getMessage());
+			printLog(LogTopics.LOG_TOPIC_ERROR, error.getMessage());
 		    }
 
 		}
