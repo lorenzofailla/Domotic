@@ -106,8 +106,7 @@ public class DomoticCore {
 	private final static int REBOOT = 1;
 	private final static int SHUTDOWN = 2;
 
-	private final static String CONF_FILE_LOCATION = "/etc/domotic.conf";
-	public static final String DEFAULT_LOCAL_COMMAND_DIRECTORY = "/var/lib/domotic";
+
 
 	private String firebaseDatabaseURL;
 	private String jsonAuthFileLocation;
@@ -144,15 +143,16 @@ public class DomoticCore {
 
 			printLog(LogTopics.LOG_TOPIC_INCHK, "Internet connection available.");
 
-			attachListener();
+			attachFirebaseIncomingMessagesNodeListener();
 
 		}
 
 		@Override
 		public void onConnectionLost() {
 
-			detachListener();
 			printLog(LogTopics.LOG_TOPIC_INCHK, "Internet connection NOT available.");
+			
+			detachFirebaseIncomingMessagesNodeListener();
 
 		}
 
@@ -563,6 +563,13 @@ public class DomoticCore {
 	public DomoticCore() {
 
 		printLog(LogTopics.LOG_TOPIC_INIT, "Domotic for linux desktop - by Lorenzo Failla");
+		
+		/* 
+		 * initialize the parameters to their default value
+		 */
+		
+		inetCheck.setLongInterval(DefaultConfigValues.CONNECTION_CHECK_INTERVAL_TIMEOUT_LONG);
+		inetCheck.setShortInterval(DefaultConfigValues.CONNECTION_CHECK_INTERVAL_TIMEOUT_SHORT);
 
 		/*
 		 * Retrieves all the parameters values from the configuration file
@@ -592,7 +599,7 @@ public class DomoticCore {
 		if (localCommandPurgeResult[1] > 0) {
 			printLog(LogTopics.LOG_TOPIC_INIT, String.format(
 					"[!] It was not possible to delete %d obsolete local command(s).\nCheck directory \"%s\" for issues",
-					localCommandPurgeResult[1], DEFAULT_LOCAL_COMMAND_DIRECTORY));
+					localCommandPurgeResult[1], DefaultConfigValues.LOCAL_COMMAND_DIRECTORY));
 			System.exit(ExitCodes.EXIT_CODE___UNABLE_TO_DELETE_LOCAL_COMMANDS);
 
 		} else {
@@ -1312,14 +1319,26 @@ public class DomoticCore {
 
 	}
 
-	private void attachListener() {
+	private void attachFirebaseIncomingMessagesNodeListener() {
 
 		incomingCommands.removeValue(new CompletionListener() {
 
 			@Override
 			public void onComplete(DatabaseError error, DatabaseReference ref) {
+				
+				if(error==null) {
 
+				printLog(LogTopics.LOG_TOPIC_INCHK,"Obsolete incoming message purged on Firebase node.");
+				
 				incomingCommands.addChildEventListener(incomingMessagesNodeListener);
+				
+				printLog(LogTopics.LOG_TOPIC_INCHK,"Listener for incoming messages on Firebase node attached.");
+				
+				} else {
+					
+					printLog(LogTopics.LOG_TOPIC_ERROR,"Error while removing the obsolete incoming messages on Firebase node. Message: " + error.getMessage()+".");
+					
+				}
 
 			}
 
@@ -1327,9 +1346,11 @@ public class DomoticCore {
 
 	}
 
-	private void detachListener() {
+	private void detachFirebaseIncomingMessagesNodeListener() {
 
 		incomingCommands.removeEventListener(incomingMessagesNodeListener);
+		
+		printLog(LogTopics.LOG_TOPIC_INCHK,"Listener for incoming messages on Firebase node detached.");
 
 	}
 
@@ -1560,7 +1581,7 @@ public class DomoticCore {
 		BufferedReader br;
 		try {
 
-			br = new BufferedReader(new FileReader(CONF_FILE_LOCATION));
+			br = new BufferedReader(new FileReader(DefaultConfigValues.CONFIG_FILE_LOCATION));
 			int lineIndex = 0;
 			String line;
 
@@ -1571,172 +1592,172 @@ public class DomoticCore {
 
 				if (line != null && line.length() > 0) {
 
-					if (line.charAt(0) != ';') {
+					char firstChar = line.charAt(0);
 
-						// divide la stringa in comando e argomento
-						String[] lineProc = line.split("=");
+					if ((firstChar == ';') || (firstChar == ' ') || (firstChar == '#')) {
 
-						if (lineProc.length == 2) {
+						// the current line is not actionable or a comment, so it will be skipped
+						continue;
+					}
 
-							String command = lineProc[0];
-							String argument = lineProc[1];
+					// divide la stringa in comando e argomento
+					String[] lineProc = line.split("=");
 
-							switch (command) {
+					if (lineProc.length == 2) {
 
-							case "GoogleServicesGroupName":
-								groupName = argument;
-								break;
+						String command = lineProc[0];
+						String argument = lineProc[1];
 
-							case "FirebaseJSONKeyLocation":
-								jsonAuthFileLocation = argument;
-								break;
+						switch (command) {
 
-							case "FirebaseDBRootPath":
-								firebaseDatabaseURL = argument;
-								break;
+						case "GoogleServicesGroupName":
+							groupName = argument;
+							break;
 
-							case "FirebaseStoragePath":
-								storageBucketAddress = argument;
-								break;
+						case "FirebaseJSONKeyLocation":
+							jsonAuthFileLocation = argument;
+							break;
 
-							case "FCMKey":
-								notificationsEnabled = true;
-								fcmServiceKey = argument;
-								break;
+						case "FirebaseDBRootPath":
+							firebaseDatabaseURL = argument;
+							break;
 
-							case "DeviceName":
-								thisDevice = argument;
-								break;
+						case "FirebaseStoragePath":
+							storageBucketAddress = argument;
+							break;
 
-							case "AllowDirectoryNavigation":
-								hasDirectoryNavigation = argument.equals("yes");
-								break;
+						case "FCMKey":
+							notificationsEnabled = true;
+							fcmServiceKey = argument;
+							break;
 
-							case "AllowTorrentManagement":
-								allowTorrentManagement = argument.equals("yes");
-								break;
+						case "DeviceName":
+							thisDevice = argument;
+							break;
 
-							case "AllowVideoSurveillanceManagement":
-								allowVideoSurveillanceManagement = argument.equals("yes");
-								break;
+						case "AllowDirectoryNavigation":
+							hasDirectoryNavigation = argument.equals("yes");
+							break;
 
-							case "AllowSSH":
-								allowSSH = argument.equals("yes");
-								break;
+						case "AllowTorrentManagement":
+							allowTorrentManagement = argument.equals("yes");
+							break;
 
-							case "VideoSurveillanceServerAddress":
-								videoSurveillanceServerAddress = argument;
-								break;
+						case "AllowVideoSurveillanceManagement":
+							allowVideoSurveillanceManagement = argument.equals("yes");
+							break;
 
-							case "VideoSurveillanceServerControlPort":
-								try {
-									videoSurveillanceServerControlPort = Integer.parseInt(argument);
-								} catch (NumberFormatException e) {
-									videoSurveillanceServerControlPort = -1;
-								}
-								break;
+						case "AllowSSH":
+							allowSSH = argument.equals("yes");
+							break;
 
-							case "chmodDevice":
-								try {
+						case "VideoSurveillanceServerAddress":
+							videoSurveillanceServerAddress = argument;
+							break;
 
-									parseShellCommand("sudo chmod 777 " + argument);
-									printLog(LogTopics.LOG_TOPIC_INIT, "Successfully chmodded \'" + argument + "\'");
+						case "VideoSurveillanceServerControlPort":
+							try {
+								videoSurveillanceServerControlPort = Integer.parseInt(argument);
+							} catch (NumberFormatException e) {
+								videoSurveillanceServerControlPort = -1;
+							}
+							break;
 
-								} catch (InterruptedException e) {
+						case "chmodDevice":
+							try {
 
-									printLog(LogTopics.LOG_TOPIC_INIT,
-											"Unable to chmod \'" + argument + "\': " + e.getMessage());
-								}
+								parseShellCommand("sudo chmod 777 " + argument);
+								printLog(LogTopics.LOG_TOPIC_INIT, "Successfully chmodded \'" + argument + "\'");
 
-								break;
+							} catch (InterruptedException e) {
 
-							case "VideoSurveillanceDaemonAction":
-								try {
-									parseShellCommand(argument);
-									printLog(LogTopics.LOG_TOPIC_INIT, "Successfully applied \'" + argument
-											+ "\' command to VideoSurveillance daemon.");
-								} catch (InterruptedException e) {
-
-									printLog(LogTopics.LOG_TOPIC_INIT, "Warning! unable to apply \'" + argument
-											+ "\' command to VideoSurveillance daemon: " + e.getMessage());
-								}
-								break;
-
-							case "VideoSurveillanceDaemonShutdownCommand":
-
-								videoSurveillanceDaemonShutdownCommand = argument;
-
-								break;
-
-							case "WOLDevice":
-								String[] args = argument.split("_");
-
-								if (args.length == 2) {
-									wolDevName.add(args[0]);
-									wolDevList.add(args[1]);
-								} else {
-
-									printLog(LogTopics.LOG_TOPIC_INIT,
-											"Warning! Expected {Device Name}_{Device MAC Address} at line " + lineIndex
-													+ ". Found: " + args.length + " splits. Skipping");
-								}
-
-								break;
-
-							case "SSHUsername":
-								sshUsername = argument;
-								break;
-
-							case "SSHPassword":
-								sshPassword = argument;
-								break;
-
-							case "SSHHost":
-								sshHost = argument;
-								break;
-
-							case "SSHPort":
-								sshPort = Integer.parseInt(argument);
-								break;
-
-							case "CameraNames":
-								break;
-
-							case "YouTubeClientJSONLocation":
-								youTubeJSONLocation = argument;
-								break;
-
-							case "YouTubeOAuthFolder":
-								youTubeOAuthFolder = argument;
-								break;
-
-							case "VPNConfigFile":
-								vpnConnectionConfigFilePath = argument;
-								break;
-
-							default:
-								printLog(LogTopics.LOG_TOPIC_INIT, "Unknown command \'" + command + "\' at line \'"
-										+ lineIndex + "\'. Please check and try again.");
-								br.close();
-								return false;
+								printLog(LogTopics.LOG_TOPIC_INIT,
+										"Unable to chmod \'" + argument + "\': " + e.getMessage());
 							}
 
-							printLog(LogTopics.LOG_TOPIC_INIT,
-									String.format("Parameter \"%s\"; value=\"%s\"", command, argument));
+							break;
 
-						} else {
+						case "VideoSurveillanceDaemonAction":
+							try {
+								parseShellCommand(argument);
+								printLog(LogTopics.LOG_TOPIC_INIT, "Successfully applied \'" + argument
+										+ "\' command to VideoSurveillance daemon.");
+							} catch (InterruptedException e) {
 
-							// errore di sintassi
-							printLog(LogTopics.LOG_TOPIC_INIT, "Syntax error, please check line \'" + lineIndex
-									+ "\' in configuration file and try again.");
+								printLog(LogTopics.LOG_TOPIC_INIT, "Warning! unable to apply \'" + argument
+										+ "\' command to VideoSurveillance daemon: " + e.getMessage());
+							}
+							break;
+
+						case "VideoSurveillanceDaemonShutdownCommand":
+
+							videoSurveillanceDaemonShutdownCommand = argument;
+
+							break;
+
+						case "WOLDevice":
+							String[] args = argument.split("_");
+
+							if (args.length == 2) {
+								wolDevName.add(args[0]);
+								wolDevList.add(args[1]);
+							} else {
+
+								printLog(LogTopics.LOG_TOPIC_INIT,
+										"Warning! Expected {Device Name}_{Device MAC Address} at line " + lineIndex
+												+ ". Found: " + args.length + " splits. Skipping");
+							}
+
+							break;
+
+						case "SSHUsername":
+							sshUsername = argument;
+							break;
+
+						case "SSHPassword":
+							sshPassword = argument;
+							break;
+
+						case "SSHHost":
+							sshHost = argument;
+							break;
+
+						case "SSHPort":
+							sshPort = Integer.parseInt(argument);
+							break;
+
+						case "CameraNames":
+							break;
+
+						case "YouTubeClientJSONLocation":
+							youTubeJSONLocation = argument;
+							break;
+
+						case "YouTubeOAuthFolder":
+							youTubeOAuthFolder = argument;
+							break;
+
+						case "VPNConfigFile":
+							vpnConnectionConfigFilePath = argument;
+							break;
+
+						default:
+							printLog(LogTopics.LOG_TOPIC_INIT, "Unknown command \'" + command + "\' at line \'"
+									+ lineIndex + "\'. Please check and try again.");
 							br.close();
 							return false;
-
 						}
 
+						printLog(LogTopics.LOG_TOPIC_INIT,
+								String.format("Parameter \"%s\"; value=\"%s\"", command, argument));
+
 					} else {
-						//
-						//
+
+						// errore di sintassi
+						printLog(LogTopics.LOG_TOPIC_INIT, "Syntax error, please check line \'" + lineIndex
+								+ "\' in configuration file and try again.");
+						br.close();
+						return false;
 
 					}
 
@@ -1792,10 +1813,10 @@ public class DomoticCore {
 
 			printLog(LogTopics.LOG_TOPIC_INIT,
 					e.getMessage() + " Make sure configuration file exists and is readable at specified location: \'"
-							+ CONF_FILE_LOCATION + "\'");
+							+ DefaultConfigValues.CONFIG_FILE_LOCATION + "\'");
 			return false;
 
-		}
+		} 		
 
 	}
 
@@ -2432,7 +2453,7 @@ public class DomoticCore {
 
 		};
 
-		File localCmdDirectory = new File(DEFAULT_LOCAL_COMMAND_DIRECTORY);
+		File localCmdDirectory = new File(DefaultConfigValues.LOCAL_COMMAND_DIRECTORY);
 		return localCmdDirectory.listFiles(filter);
 
 	}
