@@ -44,6 +44,7 @@ import static apps.java.loref.GeneralUtilitiesLibrary.printLog;
 import static apps.java.loref.GeneralUtilitiesLibrary.readPlainTextFromFile;
 import static apps.java.loref.GeneralUtilitiesLibrary.sleepSafe;
 import static apps.java.loref.GeneralUtilitiesLibrary.encode;
+import static apps.java.loref.GeneralUtilitiesLibrary.getFreeSpace;
 
 import static apps.java.loref.MotionComm.getEventJpegFileName;
 
@@ -93,6 +94,8 @@ public class DomoticCore {
 
 	private final static String GROUP_NODE = "Groups";
 	private final static String DEVICES_NODE = "Devices";
+	private final static String STATUS_NODE = "Status";
+	
 	private final static String VIDEOSURVEILLANCE_NODE = "VideoSurveillance";
 	private final static String AVAILABLE_CAMERAS_NODE = "AvailableCameras";
 	private final static String VIDEO_STREAMING_NODE = "StreamingData";
@@ -106,8 +109,6 @@ public class DomoticCore {
 	private final static int REBOOT = 1;
 	private final static int SHUTDOWN = 2;
 
-
-
 	private String firebaseDatabaseURL;
 	private String jsonAuthFileLocation;
 	private String thisDevice;
@@ -116,6 +117,7 @@ public class DomoticCore {
 	private SignUrlOption signOption;
 
 	private boolean loopFlag;
+	private static long runningSince;
 	private boolean readyToProcessLocalCommands = true;
 
 	private long lastHeartBeatUpdate = 0L;
@@ -124,6 +126,7 @@ public class DomoticCore {
 	private boolean notificationsEnabled = false;
 	private String fcmServiceKey = "";
 
+	private boolean allowDirectoryNavigation = false;
 	private boolean allowTorrentManagement = false;
 	private boolean allowVideoSurveillanceManagement = false;
 	private boolean allowSSH = false;
@@ -135,14 +138,17 @@ public class DomoticCore {
 	/*
 	 * --- internet connection check
 	 */
-	InetCheck inetCheck = new InetCheck();
-	InetCheckListener inetCheckListener = new InetCheckListener() {
+
+	private InetCheck inetCheck = new InetCheck();
+	private InetCheckListener inetCheckListener = new InetCheckListener() {
 
 		@Override
 		public void onConnectionRestored() {
 
 			printLog(LogTopics.LOG_TOPIC_INCHK, "Internet connection available.");
 
+			updateDeviceStatus();
+			
 			attachFirebaseIncomingMessagesNodeListener();
 
 		}
@@ -151,7 +157,7 @@ public class DomoticCore {
 		public void onConnectionLost() {
 
 			printLog(LogTopics.LOG_TOPIC_INCHK, "Internet connection NOT available.");
-			
+
 			detachFirebaseIncomingMessagesNodeListener();
 
 		}
@@ -552,6 +558,8 @@ public class DomoticCore {
 
 			}
 
+			inetCheck.terminate();
+
 			printLog(LogTopics.LOG_TOPIC_MAIN, "End of session");
 
 			System.exit(0);
@@ -563,14 +571,16 @@ public class DomoticCore {
 	public DomoticCore() {
 
 		printLog(LogTopics.LOG_TOPIC_INIT, "Domotic for linux desktop - by Lorenzo Failla");
-		
-		/* 
+
+		/*
 		 * initialize the parameters to their default value
 		 */
-		
+
 		inetCheck.setLongInterval(DefaultConfigValues.CONNECTION_CHECK_INTERVAL_TIMEOUT_LONG);
 		inetCheck.setShortInterval(DefaultConfigValues.CONNECTION_CHECK_INTERVAL_TIMEOUT_SHORT);
-
+		
+		runningSince=System.currentTimeMillis();
+		
 		/*
 		 * Retrieves all the parameters values from the configuration file
 		 */
@@ -780,7 +790,7 @@ public class DomoticCore {
 
 		case "__requestFreeSpace":
 
-			return new RemoteCommand(ReplyPrefix.FREE_SPACE_REPLY.prefix(), encode(getFreeSpace()), "null");
+			return new RemoteCommand(ReplyPrefix.FREE_SPACE_REPLY.prefix(), encode(String.format("%.2f MBi\n", getFreeSpace("/"))), "null");
 
 		case "__listTorrents":
 
@@ -1325,19 +1335,21 @@ public class DomoticCore {
 
 			@Override
 			public void onComplete(DatabaseError error, DatabaseReference ref) {
-				
-				if(error==null) {
 
-				printLog(LogTopics.LOG_TOPIC_INCHK,"Obsolete incoming message purged on Firebase node.");
-				
-				incomingCommands.addChildEventListener(incomingMessagesNodeListener);
-				
-				printLog(LogTopics.LOG_TOPIC_INCHK,"Listener for incoming messages on Firebase node attached.");
-				
+				if (error == null) {
+
+					printLog(LogTopics.LOG_TOPIC_INCHK, "Obsolete incoming message purged on Firebase node.");
+
+					incomingCommands.addChildEventListener(incomingMessagesNodeListener);
+
+					printLog(LogTopics.LOG_TOPIC_INCHK, "Listener for incoming messages on Firebase node attached.");
+
 				} else {
-					
-					printLog(LogTopics.LOG_TOPIC_ERROR,"Error while removing the obsolete incoming messages on Firebase node. Message: " + error.getMessage()+".");
-					
+
+					printLog(LogTopics.LOG_TOPIC_ERROR,
+							"Error while removing the obsolete incoming messages on Firebase node. Message: "
+									+ error.getMessage() + ".");
+
 				}
 
 			}
@@ -1349,25 +1361,30 @@ public class DomoticCore {
 	private void detachFirebaseIncomingMessagesNodeListener() {
 
 		incomingCommands.removeEventListener(incomingMessagesNodeListener);
-		
-		printLog(LogTopics.LOG_TOPIC_INCHK,"Listener for incoming messages on Firebase node detached.");
+
+		printLog(LogTopics.LOG_TOPIC_INCHK, "Listener for incoming messages on Firebase node detached.");
 
 	}
 
 	private void retrieveServices() {
 
 		printLog(LogTopics.LOG_TOPIC_INIT, "\'uptime\' check started.");
-		try {
 
-			parseShellCommand("uptime");
-			printLog(LogTopics.LOG_TOPIC_INIT, "\'uptime\' check successfully completed.");
-			hasDirectoryNavigation = true;
+		if (allowDirectoryNavigation) {
+			
+			try {
 
-		} catch (IOException | InterruptedException e) {
+				parseShellCommand("uptime");
+				printLog(LogTopics.LOG_TOPIC_INIT, "\'uptime\' check successfully completed.");
+				hasDirectoryNavigation = true;
 
-			printLog(LogTopics.LOG_TOPIC_INIT, "\'uptime\' check failed. " + e.getMessage());
-			hasDirectoryNavigation = false;
+			} catch (IOException | InterruptedException e) {
 
+				printLog(LogTopics.LOG_TOPIC_INIT, "\'uptime\' check failed. " + e.getMessage());
+				hasDirectoryNavigation = false;
+
+			}
+			
 		}
 
 		if (allowTorrentManagement) {
@@ -1481,13 +1498,7 @@ public class DomoticCore {
 
 	}
 
-	private String getFreeSpace() {
-
-		long freeSpaceBytes = new File("/").getFreeSpace();
-		double freeSpaceMB = freeSpaceBytes / 1024.0 / 1024.0;
-		return String.format("%.2f MBi\n", freeSpaceMB);
-
-	}
+	
 
 	private void uploadFileToStorage(String fileName, String requestor, boolean downloadOnRemoteDevice) {
 
@@ -1816,7 +1827,7 @@ public class DomoticCore {
 							+ DefaultConfigValues.CONFIG_FILE_LOCATION + "\'");
 			return false;
 
-		} 		
+		}
 
 	}
 
@@ -2540,6 +2551,26 @@ public class DomoticCore {
 
 		}
 
+	}
+	
+	private void updateDeviceStatus() {
+		
+		String uptimeReply = getUptime();
+		double freespaceReply = getFreeSpace("/");
+		String connectionAvailability = String.format("%f0.1%%", inetCheck.getAvailabilityPercentage()*100);
+		
+		HashMap<String,Object> deviceStatusData = new HashMap<String,Object>();
+		deviceStatusData.put("Uptime", uptimeReply);
+		deviceStatusData.put("FreeSpace",freespaceReply);
+		deviceStatusData.put("ConnAvailability", connectionAvailability);
+		deviceStatusData.put("RunningSince",runningSince);
+		deviceStatusData.put("LastUpdate",System.currentTimeMillis());
+		
+		String deviceStatusDBNodePath = GROUP_NODE + "/" + groupName + "/" + DEVICES_NODE + "/" + thisDevice;
+		
+		DatabaseReference deviceStatusDBRef = FirebaseDatabase.getInstance().getReference(deviceStatusDBNodePath);
+		deviceStatusDBRef.child(STATUS_NODE).setValue(deviceStatusData, new FirebaseDBUpdateLogger(LogTopics.LOG_TOPIC_FIREBASE_DB, "Device Status"));
+		
 	}
 
 }
