@@ -2554,7 +2554,7 @@ public class DomoticCore {
 		String deviceStatusDBNodePath = GROUP_NODE + "/" + groupName + "/" + DEVICES_NODE + "/" + thisDevice;
 		
 		DatabaseReference deviceStatusDBRef = FirebaseDatabase.getInstance().getReference(deviceStatusDBNodePath);
-		deviceStatusDBRef.child(STATUS_NODE).setValue(deviceStatusData, new FirebaseDBUpdateLogger(LogTopics.LOG_TOPIC_FIREBASE_DB, "Device Status"));
+		deviceStatusDBRef.child(STATUS_NODE).setValue(deviceStatusData, new FirebaseDBUpdateLogger(LogTopics.LOG_TOPIC_FIREBASE_DB, "Device Status", true));
 		
 	}
 
