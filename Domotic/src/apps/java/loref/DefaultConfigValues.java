@@ -8,4 +8,6 @@ public class DefaultConfigValues {
 	public final static long CONNECTION_CHECK_INTERVAL_TIMEOUT_LONG=10000L;
 	public final static long CONNECTION_CHECK_INTERVAL_TIMEOUT_SHORT=10000L;
 	
+	public final static long DEVICE_STATUS_UPDATE_RATE=60000L;
+	
 }
