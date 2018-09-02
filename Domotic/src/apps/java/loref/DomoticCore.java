@@ -60,6 +60,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 import org.json.JSONObject;
@@ -117,11 +119,8 @@ public class DomoticCore {
 	private SignUrlOption signOption;
 
 	private boolean loopFlag;
-	private static long runningSince;
+	private final long runningSince;
 	private boolean readyToProcessLocalCommands = true;
-
-	private long lastHeartBeatUpdate = 0L;
-	private boolean allowLastHeartBeatUpdate = true;
 
 	private boolean notificationsEnabled = false;
 	private String fcmServiceKey = "";
@@ -139,6 +138,7 @@ public class DomoticCore {
 	 * --- internet connection check
 	 */
 
+	private long lastTimeOnline;
 	private InetCheck inetCheck = new InetCheck();
 	private InetCheckListener inetCheckListener = new InetCheckListener() {
 
@@ -147,10 +147,13 @@ public class DomoticCore {
 
 			printLog(LogTopics.LOG_TOPIC_INCHK, "Internet connection available.");
 
-			updateDeviceStatus();
-			
 			attachFirebaseIncomingMessagesNodeListener();
-
+			
+			// activate the timer for the periodical update of the device status
+			
+			deviceStatusUpdateTimer = new Timer();
+			deviceStatusUpdateTimer.scheduleAtFixedRate(new DeviceStatusUpdateTask(), 0, deviceStatusUpdateRate);
+			
 		}
 
 		@Override
@@ -160,16 +163,38 @@ public class DomoticCore {
 
 			detachFirebaseIncomingMessagesNodeListener();
 
+			// deactivate the timer for the periodical update of the device status
+			deviceStatusUpdateTimer.cancel();
+			
 		}
 
 		@Override
 		public void onCheck(boolean status) {
 
-			// no action foreseen
+			if(status) {
+				lastTimeOnline=System.currentTimeMillis();
+			}
 
 		}
 
 	};
+	
+	/*
+	 * Device status periodical update
+	 */
+	
+	private Timer deviceStatusUpdateTimer;
+	private long deviceStatusUpdateRate = DefaultConfigValues.DEVICE_STATUS_UPDATE_RATE;
+	
+	private class DeviceStatusUpdateTask extends TimerTask {
+
+		@Override
+		public void run() {
+			updateDeviceStatus();
+			
+		}
+		
+	}
 
 	/*
 	 * VPN connection
@@ -531,21 +556,6 @@ public class DomoticCore {
 			while (loopFlag) {
 
 				/*
-				 * Determina il tempo trascorso dall'ultimo update della propriet�
-				 * lastHeartBeatTime sul database di Firebase. Se il tempo trascorso supera il
-				 * valore di HEART_BEAT_MS, procede all'update della propriet�
-				 */
-				long timeSinceLastHeartBeatUpdate = System.currentTimeMillis() - lastHeartBeatUpdate;
-
-				if ((timeSinceLastHeartBeatUpdate > HEART_BEAT_MS) && allowLastHeartBeatUpdate) {
-
-					// procede all'update della propriet�
-					allowLastHeartBeatUpdate = false;
-					updateLastHeartBeatTime();
-
-				}
-
-				/*
 				 * Processa i comandi locali
 				 */
 
@@ -578,6 +588,7 @@ public class DomoticCore {
 
 		inetCheck.setLongInterval(DefaultConfigValues.CONNECTION_CHECK_INTERVAL_TIMEOUT_LONG);
 		inetCheck.setShortInterval(DefaultConfigValues.CONNECTION_CHECK_INTERVAL_TIMEOUT_SHORT);
+		inetCheck.setPersistentNotification(true);
 		
 		runningSince=System.currentTimeMillis();
 		
@@ -2466,32 +2477,6 @@ public class DomoticCore {
 
 		File localCmdDirectory = new File(DefaultConfigValues.LOCAL_COMMAND_DIRECTORY);
 		return localCmdDirectory.listFiles(filter);
-
-	}
-
-	/*
-	 * Sets the system time in millisecond -System.currentTimeMillis()- in the node
-	 * of the device data, updates the property lastHeartBeatUpdate when done.
-	 */
-	private void updateLastHeartBeatTime() {
-
-		DatabaseReference ref = FirebaseDatabase.getInstance().getReference(String.format("/Groups/%s", groupName));
-		ref.child("Devices").child(thisDevice).child("lastHeartBeatTime").setValue(System.currentTimeMillis(),
-				new CompletionListener() {
-
-					@Override
-					public void onComplete(DatabaseError error, DatabaseReference ref) {
-
-						lastHeartBeatUpdate = System.currentTimeMillis();
-						allowLastHeartBeatUpdate = true;
-
-						if (error != null) {
-							printLog(LogTopics.LOG_TOPIC_ERROR,
-									String.format("Error during Heartbeat time update: \"%s\"", error.getMessage()));
-						}
-
-					}
-				});
 
 	}
 
