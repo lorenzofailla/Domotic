@@ -15,9 +15,6 @@ public class LogTopics {
     public final static String LOG_TOPIC_SHEXEC = "SHELLEXEC";
     public final static String LOG_TOPIC_TCP = "TCP_IFACE";
     public final static String LOG_TOPIC_INCHK = "INET_CHECK";
-<<<<<<< HEAD
-=======
     public final static String LOG_TOPIC_FIREBASE_DB = "FIREBASE-DB";
->>>>>>> branch 'master' of https://github.com/lorenzofailla/Domotic.git
     
 }
