@@ -10,4 +10,6 @@ public class DefaultConfigValues {
 	
 	public final static long DEVICE_STATUS_UPDATE_RATE=60000L;
 	
+	public final static long FIREBASE_DB_UPDATE_TIMEOUT=10000L;
+	
 }
