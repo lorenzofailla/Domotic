@@ -107,8 +107,7 @@ public class DomoticCore {
     private final static String LOCAL_TCP_PREFIX = "tcp://";
 
     private final static long TICK_TIME_MS = 1000L; // milliseconds
-    private final static long HEART_BEAT_MS = 60000L; // ms
-
+    
     private final static int REBOOT = 1;
     private final static int SHUTDOWN = 2;
 
@@ -146,6 +145,7 @@ public class DomoticCore {
 
 	@Override
 	public void run() {
+	    
 	    updateDeviceStatus();
 
 	}
@@ -299,9 +299,7 @@ public class DomoticCore {
     private boolean deviceRegistered;
     private int videoSurveillanceRegistered;
     private boolean incomingMessagesCleared;
-
     private boolean incomingFilesCleared;
-
     private DatabaseReference incomingCommands;
 
     /*
@@ -313,7 +311,6 @@ public class DomoticCore {
     /*
      * SSH Shell
      */
-
     private HashMap<String, SSHShell> sshShells = new HashMap<String, SSHShell>();
     private SSHShell sshShell;
     private String sshUsername;
@@ -432,7 +429,7 @@ public class DomoticCore {
 
 	@Override
 	public void onLiveStreamDeleted(String broadcastID) {
-	    // TODO Auto-generated method stub
+	    // no action foreseen
 
 	}
 
@@ -480,7 +477,7 @@ public class DomoticCore {
 
 	@Override
 	public void onLiveBroadCastDeleted(String broadcastID) {
-	    // TODO Auto-generated method stub
+	    // no action foreseen
 
 	}
 
@@ -688,7 +685,7 @@ public class DomoticCore {
 		 * close the TCP interface
 		 */
 
-		// TODO: implementare
+		tcpInterface.terminate();
 
 		/* unregister the device, so that client cannot connect to it */
 		unRegisterDeviceServices();
@@ -1081,6 +1078,12 @@ public class DomoticCore {
 
 	    }
 
+	    return null;
+	    
+	case "__update_status":
+	    
+	    updateDeviceStatus();
+	    
 	    return null;
 
 	default:
