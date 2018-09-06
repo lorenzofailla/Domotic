@@ -97,6 +97,8 @@ public class DomoticCore {
     private final static String GROUP_NODE = "Groups";
     private final static String DEVICES_NODE = "Devices";
     private final static String STATUS_NODE = "Status";
+    private final static String NETWORK_STATUS_NODE = "NetworkStatus";
+
     private final static String LOGS_NODE = "Logs";
 
     private final static String VIDEOSURVEILLANCE_NODE = "VideoSurveillance";
@@ -107,7 +109,7 @@ public class DomoticCore {
     private final static String LOCAL_TCP_PREFIX = "tcp://";
 
     private final static long TICK_TIME_MS = 1000L; // milliseconds
-    
+
     private final static int REBOOT = 1;
     private final static int SHUTDOWN = 2;
 
@@ -135,7 +137,7 @@ public class DomoticCore {
     private boolean hasVideoSurveillance = false;
 
     /*
-     * Device status periodical update
+     * Periodical update of device GENERAL STATUS
      */
 
     private Timer deviceStatusUpdateTimer;
@@ -145,7 +147,7 @@ public class DomoticCore {
 
 	@Override
 	public void run() {
-	    
+
 	    updateDeviceStatus();
 
 	}
@@ -172,6 +174,104 @@ public class DomoticCore {
 	    // register a log entry message in the Firebase DB node.
 	    LogEntry log = new LogEntry(getTimeStamp(), LogTopics.LOG_TOPIC_ERROR, "Timeout exceeded during device status update on Firebase DB node.");
 	    FirebaseDatabase.getInstance().getReference(GROUP_NODE + "/" + groupName + "/" + DEVICES_NODE + "/" + thisDevice + "/" + LOGS_NODE).child(getTimeStamp()).setValueAsync(log);
+
+	}
+
+    }
+
+    private void updateDeviceStatus() {
+
+	String uptimeReply = getUptime();
+	double freespaceReply = getFreeSpace("/");
+
+	HashMap<String, Object> deviceStatusData = new HashMap<String, Object>();
+	deviceStatusData.put("Uptime", uptimeReply);
+	deviceStatusData.put("FreeSpace", freespaceReply);
+	deviceStatusData.put("RunningSince", runningSince);
+	deviceStatusData.put("LastUpdate", System.currentTimeMillis());
+
+	String deviceStatusDBNodePath = GROUP_NODE + "/" + groupName + "/" + DEVICES_NODE + "/" + thisDevice;
+
+	DatabaseReference deviceStatusDBRef = FirebaseDatabase.getInstance().getReference(deviceStatusDBNodePath);
+	deviceStatusDBRef.child(STATUS_NODE).setValue(deviceStatusData, new CompletionListener() {
+
+	    @Override
+	    public void onComplete(DatabaseError error, DatabaseReference ref) {
+
+		if (error == null) {
+		    firebaseDBUpdateTimeoutTimer.cancel();
+		} else {
+		    printLog(LogTopics.LOG_TOPIC_ERROR, "Unable to update device status in Firebase DB. Message=\"" + error.getMessage() + "\"");
+		}
+
+	    }
+
+	});
+
+	firebaseDBUpdateTimeoutTimer = new Timer();
+	firebaseDBUpdateTimeoutTimer.schedule(new FirebaseDBUpdateTimeoutTask(), firebaseDBUpdateTimeOut);
+
+    }
+
+    /*
+     * Periodical update of device NETWORK STATUS
+     */
+    private long deviceNetworkStatusUpdateRate = DefaultConfigValues.DEVICE_NETWORK_STATUS_UPDATE_RATE;
+
+    private String localIpAddrCommand = DefaultConfigValues.LOCAL_IP_COMMAND;
+    private String publicIpAddrCommand = DefaultConfigValues.PUBLIC_IP_COMMAND;
+
+    private Timer deviceNetworkStatusUpdateTimer;
+
+    private class deviceNetworkStatusUpdateTask extends TimerTask {
+
+	@Override
+	public void run() {
+
+	    updateNetworkStatus();
+
+	}
+
+    }
+
+    private void updateNetworkStatus() {
+
+	HashMap<String, String> networkStatus = new HashMap<>();
+	networkStatus.put("PublicIP", getPublicIPAddresses());
+	networkStatus.put("LocalIP", getLocalIPAddresses());
+
+	String refNode = GROUP_NODE + "/" + groupName + "/" + DEVICES_NODE + "/" + NETWORK_STATUS_NODE;
+	FirebaseDatabase.getInstance().getReference(refNode).setValueAsync(networkStatus);
+
+    }
+
+    private String getLocalIPAddresses() {
+
+	try {
+
+	    return parseShellCommand(localIpAddrCommand);
+
+	} catch (IOException | InterruptedException e) {
+
+	    printErrorLog(e);
+
+	    return DefaultConfigValues.ERROR;
+
+	}
+
+    }
+
+    private String getPublicIPAddresses() {
+
+	try {
+
+	    return parseShellCommand(publicIpAddrCommand);
+
+	} catch (IOException | InterruptedException e) {
+
+	    printErrorLog(e);
+
+	    return DefaultConfigValues.ERROR;
 
 	}
 
@@ -521,8 +621,12 @@ public class DomoticCore {
 
 	    attachFirebaseIncomingMessagesNodeListener();
 
+	    // attiva i timer per i task periodici
 	    deviceStatusUpdateTimer = new Timer();
 	    deviceStatusUpdateTimer.scheduleAtFixedRate(new DeviceStatusUpdateTask(), 0, deviceStatusUpdateRate);
+
+	    deviceNetworkStatusUpdateTimer = new Timer();
+	    deviceNetworkStatusUpdateTimer.schedule(new deviceNetworkStatusUpdateTask(), 0, deviceNetworkStatusUpdateRate);
 
 	    while (loopFlag) {
 
@@ -541,7 +645,10 @@ public class DomoticCore {
 
 	    detachFirebaseIncomingMessagesNodeListener();
 
+	    // cancella i timer per i task periodici
 	    deviceStatusUpdateTimer.cancel();
+	    deviceNetworkStatusUpdateTimer.cancel();
+
 	    printLog(LogTopics.LOG_TOPIC_MAIN, "End of session");
 
 	    System.exit(0);
@@ -1079,11 +1186,11 @@ public class DomoticCore {
 	    }
 
 	    return null;
-	    
+
 	case "__update_status":
-	    
+
 	    updateDeviceStatus();
-	    
+
 	    return null;
 
 	default:
@@ -1255,9 +1362,9 @@ public class DomoticCore {
     private boolean connectToFirebaseDatabase() {
 
 	FileInputStream serviceAccount = null;
-	
+
 	try {
-	    
+
 	    serviceAccount = new FileInputStream(jsonAuthFileLocation);
 	    FirebaseOptions options = new FirebaseOptions.Builder().setCredentials(GoogleCredentials.fromStream(serviceAccount)).setDatabaseUrl(firebaseDatabaseURL).setStorageBucket(storageBucketAddress).build();
 
@@ -1272,8 +1379,8 @@ public class DomoticCore {
 	    printErrorLog(e);
 	    return false;
 
-	} 
-	
+	}
+
     }
 
     private void attachFirebaseIncomingMessagesNodeListener() {
@@ -2422,40 +2529,6 @@ public class DomoticCore {
 	    printErrorLog(e);
 
 	}
-
-    }
-
-    private void updateDeviceStatus() {
-
-	String uptimeReply = getUptime();
-	double freespaceReply = getFreeSpace("/");
-
-	HashMap<String, Object> deviceStatusData = new HashMap<String, Object>();
-	deviceStatusData.put("Uptime", uptimeReply);
-	deviceStatusData.put("FreeSpace", freespaceReply);
-	deviceStatusData.put("RunningSince", runningSince);
-	deviceStatusData.put("LastUpdate", System.currentTimeMillis());
-
-	String deviceStatusDBNodePath = GROUP_NODE + "/" + groupName + "/" + DEVICES_NODE + "/" + thisDevice;
-
-	DatabaseReference deviceStatusDBRef = FirebaseDatabase.getInstance().getReference(deviceStatusDBNodePath);
-	deviceStatusDBRef.child(STATUS_NODE).setValue(deviceStatusData, new CompletionListener() {
-
-	    @Override
-	    public void onComplete(DatabaseError error, DatabaseReference ref) {
-
-		if (error == null) {
-		    firebaseDBUpdateTimeoutTimer.cancel();
-		} else {
-		    printLog(LogTopics.LOG_TOPIC_ERROR, "Unable to update device status in Firebase DB. Message=\"" + error.getMessage() + "\"");
-		}
-
-	    }
-
-	});
-
-	firebaseDBUpdateTimeoutTimer = new Timer();
-	firebaseDBUpdateTimeoutTimer.schedule(new FirebaseDBUpdateTimeoutTask(), firebaseDBUpdateTimeOut);
 
     }
 
