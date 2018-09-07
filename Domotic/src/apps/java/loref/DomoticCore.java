@@ -240,7 +240,7 @@ public class DomoticCore {
 	networkStatus.put("PublicIP", getPublicIPAddresses());
 	networkStatus.put("LocalIP", getLocalIPAddresses());
 
-	String refNode = GROUP_NODE + "/" + groupName + "/" + DEVICES_NODE + "/" + NETWORK_STATUS_NODE;
+	String refNode = GROUP_NODE + "/" + groupName + "/" + DEVICES_NODE + "/" + thisDevice + "/" + NETWORK_STATUS_NODE;
 	FirebaseDatabase.getInstance().getReference(refNode).setValueAsync(networkStatus);
 
     }
@@ -249,7 +249,7 @@ public class DomoticCore {
 
 	try {
 
-	    return parseShellCommand(localIpAddrCommand);
+	    return parseShellCommand(localIpAddrCommand).replaceAll("[\r]", "");
 
 	} catch (IOException | InterruptedException e) {
 
@@ -265,7 +265,7 @@ public class DomoticCore {
 
 	try {
 
-	    return parseShellCommand(publicIpAddrCommand);
+	    return parseShellCommand(publicIpAddrCommand).replaceAll("[\r]", "");
 
 	} catch (IOException | InterruptedException e) {
 
@@ -286,6 +286,7 @@ public class DomoticCore {
     /*
      * TCP interface
      */
+
     SocketResponder tcpInterface = new SocketResponder();
     private boolean tcpInitialized = false;
 
