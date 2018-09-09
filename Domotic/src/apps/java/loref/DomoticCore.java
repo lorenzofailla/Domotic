@@ -35,7 +35,6 @@ import static apps.java.loref.GeneralUtilitiesLibrary.compress;
 import static apps.java.loref.GeneralUtilitiesLibrary.execShellCommand;
 import static apps.java.loref.GeneralUtilitiesLibrary.getFileAsBytes;
 import static apps.java.loref.GeneralUtilitiesLibrary.getTimeStamp;
-import static apps.java.loref.GeneralUtilitiesLibrary.getUptime;
 import static apps.java.loref.GeneralUtilitiesLibrary.parseLocalCommand;
 import static apps.java.loref.GeneralUtilitiesLibrary.parseMeta;
 import static apps.java.loref.GeneralUtilitiesLibrary.parseShellCommand;
@@ -44,9 +43,10 @@ import static apps.java.loref.GeneralUtilitiesLibrary.printLog;
 import static apps.java.loref.GeneralUtilitiesLibrary.readPlainTextFromFile;
 import static apps.java.loref.GeneralUtilitiesLibrary.sleepSafe;
 import static apps.java.loref.GeneralUtilitiesLibrary.encode;
-import static apps.java.loref.GeneralUtilitiesLibrary.getFreeSpace;
 
 import static apps.java.loref.MotionComm.getEventJpegFileName;
+
+import static apps.java.loref.LinuxCommands.*;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -182,11 +182,13 @@ public class DomoticCore {
     private void updateDeviceStatus() {
 
 	String uptimeReply = getUptime();
-	double freespaceReply = getFreeSpace("/");
+	double freeSpaceReply = getFreeSpace("/");
+	double totalSpaceReply = getTotalSpace("/");
 
 	HashMap<String, Object> deviceStatusData = new HashMap<String, Object>();
 	deviceStatusData.put("Uptime", uptimeReply);
-	deviceStatusData.put("FreeSpace", freespaceReply);
+	deviceStatusData.put("FreeSpace", freeSpaceReply);
+	deviceStatusData.put("TotalSpace", totalSpaceReply);
 	deviceStatusData.put("RunningSince", runningSince);
 	deviceStatusData.put("LastUpdate", System.currentTimeMillis());
 
@@ -218,9 +220,6 @@ public class DomoticCore {
      */
     private long deviceNetworkStatusUpdateRate = DefaultConfigValues.DEVICE_NETWORK_STATUS_UPDATE_RATE;
 
-    private String localIpAddrCommand = DefaultConfigValues.LOCAL_IP_COMMAND;
-    private String publicIpAddrCommand = DefaultConfigValues.PUBLIC_IP_COMMAND;
-
     private Timer deviceNetworkStatusUpdateTimer;
 
     private class deviceNetworkStatusUpdateTask extends TimerTask {
@@ -245,38 +244,7 @@ public class DomoticCore {
 
     }
 
-    private String getLocalIPAddresses() {
-
-	try {
-
-	    return parseShellCommand(localIpAddrCommand).replaceAll("[\r]", "");
-
-	} catch (IOException | InterruptedException e) {
-
-	    printErrorLog(e);
-
-	    return DefaultConfigValues.ERROR;
-
-	}
-
-    }
-
-    private String getPublicIPAddresses() {
-
-	try {
-
-	    return parseShellCommand(publicIpAddrCommand).replaceAll("[\r]", "");
-
-	} catch (IOException | InterruptedException e) {
-
-	    printErrorLog(e);
-
-	    return DefaultConfigValues.ERROR;
-
-	}
-
-    }
-
+    
     /*
      * VPN connection
      */
@@ -393,7 +361,7 @@ public class DomoticCore {
 	}
 
     };
-
+    
     /*
      * Device registration
      */
