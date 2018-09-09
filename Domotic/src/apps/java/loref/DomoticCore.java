@@ -140,6 +140,7 @@ public class DomoticCore {
      * Periodical update of device GENERAL STATUS
      */
 
+    private boolean notifyUpdateTimeout = true;
     private Timer deviceStatusUpdateTimer;
     private long deviceStatusUpdateRate = DefaultConfigValues.DEVICE_STATUS_UPDATE_RATE;
 
@@ -172,9 +173,17 @@ public class DomoticCore {
 	    printLog(LogTopics.LOG_TOPIC_ERROR, "Timeout exceeded during device status update on Firebase DB node.");
 
 	    // register a log entry message in the Firebase DB node.
-	    LogEntry log = new LogEntry(getTimeStamp(), LogTopics.LOG_TOPIC_ERROR, "Timeout exceeded during device status update on Firebase DB node.");
-	    FirebaseDatabase.getInstance().getReference(GROUP_NODE + "/" + groupName + "/" + DEVICES_NODE + "/" + thisDevice + "/" + LOGS_NODE).child(getTimeStamp()).setValueAsync(log);
-
+	    // this is executed once, according to flag 'notifyUpdateTimeout'
+	    if (notifyUpdateTimeout) {
+		
+		LogEntry log = new LogEntry(getTimeStamp(), LogTopics.LOG_TOPIC_ERROR, "Timeout exceeded during device status update on Firebase DB node.");
+		FirebaseDatabase.getInstance().getReference(GROUP_NODE + "/" + groupName + "/" + DEVICES_NODE + "/" + thisDevice + "/" + LOGS_NODE).child(getTimeStamp()).setValueAsync(log);
+		
+		// set the status of the flag to false, so to avoid multiple logs
+		notifyUpdateTimeout=false;
+		
+	    }
+	    
 	}
 
     }
@@ -201,9 +210,14 @@ public class DomoticCore {
 	    public void onComplete(DatabaseError error, DatabaseReference ref) {
 
 		if (error == null) {
+		    
 		    firebaseDBUpdateTimeoutTimer.cancel();
+		    notifyUpdateTimeout=true;
+		    
 		} else {
+		    
 		    printLog(LogTopics.LOG_TOPIC_ERROR, "Unable to update device status in Firebase DB. Message=\"" + error.getMessage() + "\"");
+		
 		}
 
 	    }
@@ -244,7 +258,6 @@ public class DomoticCore {
 
     }
 
-    
     /*
      * VPN connection
      */
@@ -361,7 +374,7 @@ public class DomoticCore {
 	}
 
     };
-    
+
     /*
      * Device registration
      */
@@ -1158,7 +1171,20 @@ public class DomoticCore {
 
 	case "__update_status":
 
-	    updateDeviceStatus();
+	    switch (incomingCommand.getBody()) {
+
+	    case "general":
+		updateDeviceStatus();
+		break;
+
+	    case "network":
+		updateNetworkStatus();
+		break;
+
+	    default:
+		break;
+
+	    }
 
 	    return null;
 
