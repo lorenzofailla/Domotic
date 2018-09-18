@@ -249,10 +249,11 @@ public class DomoticCore {
 
     private void updateNetworkStatus() {
 
-	HashMap<String, String> networkStatus = new HashMap<>();
+	HashMap<String, Object> networkStatus = new HashMap<>();
 	networkStatus.put("PublicIP", getPublicIPAddresses());
 	networkStatus.put("LocalIP", getLocalIPAddresses());
-
+	networkStatus.put("LastUpdate", System.currentTimeMillis());
+	
 	String refNode = GROUP_NODE + "/" + groupName + "/" + DEVICES_NODE + "/" + thisDevice + "/" + NETWORK_STATUS_NODE;
 	FirebaseDatabase.getInstance().getReference(refNode).setValueAsync(networkStatus);
 
