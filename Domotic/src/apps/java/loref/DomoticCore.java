@@ -135,6 +135,8 @@ public class DomoticCore {
     private boolean hasDirectoryNavigation = false;
     private boolean hasTorrent = false;
     private boolean hasVideoSurveillance = false;
+    
+    private String logsNode="";
 
     /*
      * Periodical update of device GENERAL STATUS
@@ -156,7 +158,7 @@ public class DomoticCore {
     }
 
     private long firebaseDBUpdateTimeOut = DefaultConfigValues.FIREBASE_DB_UPDATE_TIMEOUT;
-    private Timer firebaseDBUpdateTimeoutTimer;
+    private Timer firebaseDBUpdateTimeoutTimer = null;
 
     private class FirebaseDBUpdateTimeoutTask extends TimerTask {
 
@@ -165,8 +167,8 @@ public class DomoticCore {
 
 	    /*
 	     * manage a timeout issue when trying to update the device status
-	     * over the
-	     * Firebase DB node.
+	     * over the Firebase DB node.
+	     * 
 	     */
 
 	    // print a log message
@@ -175,15 +177,16 @@ public class DomoticCore {
 	    // register a log entry message in the Firebase DB node.
 	    // this is executed once, according to flag 'notifyUpdateTimeout'
 	    if (notifyUpdateTimeout) {
-		
+
 		LogEntry log = new LogEntry(getTimeStamp(), LogTopics.LOG_TOPIC_ERROR, "Timeout exceeded during device status update on Firebase DB node.");
-		FirebaseDatabase.getInstance().getReference(GROUP_NODE + "/" + groupName + "/" + DEVICES_NODE + "/" + thisDevice + "/" + LOGS_NODE).child(getTimeStamp()).setValueAsync(log);
-		
-		// set the status of the flag to false, so to avoid multiple logs
-		notifyUpdateTimeout=false;
-		
+		FirebaseDatabase.getInstance().getReference(GROUP_NODE + "/" + groupName + "/" + LOGS_NODE + "/" + thisDevice).child(getTimeStamp()).setValueAsync(log);
+
+		// set the status of the flag to false, so to avoid multiple
+		// logs in case of long periods without internet.
+		notifyUpdateTimeout = false;
+
 	    }
-	    
+
 	}
 
     }
@@ -210,20 +213,32 @@ public class DomoticCore {
 	    public void onComplete(DatabaseError error, DatabaseReference ref) {
 
 		if (error == null) {
+
+		    // stop the timer, if exists
+		    if (firebaseDBUpdateTimeoutTimer != null) {
+			firebaseDBUpdateTimeoutTimer.cancel();
+		    }
 		    
-		    firebaseDBUpdateTimeoutTimer.cancel();
-		    notifyUpdateTimeout=true;
-		    
+		    // sets this flag to true.
+		    notifyUpdateTimeout = true;
+
 		} else {
-		    
+
 		    printLog(LogTopics.LOG_TOPIC_ERROR, "Unable to update device status in Firebase DB. Message=\"" + error.getMessage() + "\"");
-		
+
 		}
 
 	    }
 
 	});
 
+	// if a previous timer was already running, stops it
+	// stop the timer, if exists
+	if (firebaseDBUpdateTimeoutTimer != null) {
+	    firebaseDBUpdateTimeoutTimer.cancel();
+	}
+
+	// starts a new timer
 	firebaseDBUpdateTimeoutTimer = new Timer();
 	firebaseDBUpdateTimeoutTimer.schedule(new FirebaseDBUpdateTimeoutTask(), firebaseDBUpdateTimeOut);
 
@@ -253,7 +268,7 @@ public class DomoticCore {
 	networkStatus.put("PublicIP", getPublicIPAddresses());
 	networkStatus.put("LocalIP", getLocalIPAddresses());
 	networkStatus.put("LastUpdate", System.currentTimeMillis());
-	
+
 	String refNode = GROUP_NODE + "/" + groupName + "/" + DEVICES_NODE + "/" + thisDevice + "/" + NETWORK_STATUS_NODE;
 	FirebaseDatabase.getInstance().getReference(refNode).setValueAsync(networkStatus);
 
@@ -600,6 +615,8 @@ public class DomoticCore {
 	@Override
 	public void run() {
 
+	    
+	    // initialize some 
 	    printLog(LogTopics.LOG_TOPIC_MAIN, "Session started");
 
 	    attachFirebaseIncomingMessagesNodeListener();
