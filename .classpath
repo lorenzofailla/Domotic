@@ -16,17 +16,11 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-<<<<<<< HEAD
-	<classpathentry combineaccessrules="false" kind="src" path="/General Utilities Library"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/TerminalScreen"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/DomoticUtils"/>
-=======
 	<classpathentry combineaccessrules="false" kind="src" path="/General Utilities Libraries"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/TerminalScreen"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/MotionComm"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/FirebaseCloudUploader"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/YouTubeComm"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/SocketResponder"/>
->>>>>>> branch 'master' of https://github.com/lorenzofailla/Domotic.git
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
