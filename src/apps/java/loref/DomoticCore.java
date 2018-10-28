@@ -82,6 +82,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.DatabaseReference.CompletionListener;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.GenericTypeIndicator;
+import com.google.firebase.database.ValueEventListener;
 
 import apps.java.loref.FirebaseCloudUploader.FirebaseCloudUploaderListener;
 import apps.java.loref.SSHShell.SSHShellListener;
@@ -98,7 +99,10 @@ public class DomoticCore {
     private final static String DEVICES_NODE = "Devices";
     private final static String STATUS_NODE = "Status";
     private final static String NETWORK_STATUS_NODE = "NetworkStatus";
-
+    private final static String INCOMING_COMMANDS_NODE = "IncomingCommands";
+    
+    private final static String ONLINE_NODE = "online";
+    
     private final static String LOGS_NODE = "Logs";
 
     private final static String VIDEOSURVEILLANCE_NODE = "VideoSurveillance";
@@ -135,8 +139,8 @@ public class DomoticCore {
     private boolean hasDirectoryNavigation = false;
     private boolean hasTorrent = false;
     private boolean hasVideoSurveillance = false;
-    
-    private String logsNode="";
+
+    private String logsNode = "";
 
     /*
      * Periodical update of device GENERAL STATUS
@@ -178,9 +182,9 @@ public class DomoticCore {
 	    // this is executed once, according to flag 'notifyUpdateTimeout'
 	    if (notifyUpdateTimeout) {
 
-		LogEntry log = new LogEntry(getTimeStamp(), LogTopics.LOG_TOPIC_ERROR, "Timeout exceeded during device status update on Firebase DB node.");
-		FirebaseDatabase.getInstance().getReference(GROUP_NODE + "/" + groupName + "/" + LOGS_NODE + "/" + thisDevice).child(getTimeStamp()).setValueAsync(log);
-
+		LogEntry log = new LogEntry(getTimeStamp(), LogTopics.LOG_TOPIC_INET_OUT, "Timeout exceeded during device status update on Firebase DB node.");
+		firebaseLog(log);
+		
 		// set the status of the flag to false, so to avoid multiple
 		// logs in case of long periods without internet.
 		notifyUpdateTimeout = false;
@@ -218,8 +222,9 @@ public class DomoticCore {
 		    if (firebaseDBUpdateTimeoutTimer != null) {
 			firebaseDBUpdateTimeoutTimer.cancel();
 		    }
-		    
-		    // sets this flag to true.
+
+		    // sets this flag to true, so to enable the logging of
+		    // timeouts
 		    notifyUpdateTimeout = true;
 
 		} else {
@@ -233,7 +238,6 @@ public class DomoticCore {
 	});
 
 	// if a previous timer was already running, stops it
-	// stop the timer, if exists
 	if (firebaseDBUpdateTimeoutTimer != null) {
 	    firebaseDBUpdateTimeoutTimer.cancel();
 	}
@@ -392,6 +396,60 @@ public class DomoticCore {
     };
 
     /*
+     * 'online' attribute listener
+     */
+
+    ValueEventListener onLineStatusListener = new ValueEventListener() {
+
+	@Override
+	public void onDataChange(DataSnapshot snapshot) {
+	    
+	    // retrieve the value of the 'online' attribute
+	    boolean onlineStatus = (boolean) snapshot.getValue();
+	    
+	    if (!onlineStatus) {
+		
+		// sets the 'online' attribute to true
+		switchToOnline();
+		
+		if(notifyUpdateTimeout){
+		    
+		    // add a log line in the Firebase Database logs node
+		    LogEntry log = new LogEntry(System.currentTimeMillis()+"", LogTopics.LOG_TOPIC_INET_IN, "Connectivity restored, device online.");
+		    firebaseLog(log);
+		    
+		    //TODO: sends a notification with Firebase Instant Messaging service.
+		    		    
+		}
+		
+	    }
+
+	}
+
+	@Override
+	public void onCancelled(DatabaseError error) {
+	    // intentionally blank
+
+	}
+
+    };
+    
+    private void switchToOnline(){
+	
+	// sets the 'online' attribute of the device node in the Firebase Database tree to true
+	FirebaseDatabase.getInstance().getReference(String.format("%s/%s/%s", GROUP_NODE, DEVICES_NODE, thisDevice)).child(ONLINE_NODE).setValueAsync(true);
+	
+    }
+    
+    /*
+     * Firebase log
+     */
+    
+    private void firebaseLog(LogEntry log){
+    	FirebaseDatabase.getInstance().getReference(GROUP_NODE + "/" + groupName + "/" + LOGS_NODE + "/" + thisDevice).child(getTimeStamp()).setValueAsync(log);
+    }
+
+    /*
      * Device registration
      */
     private boolean deviceRegistered;
@@ -399,6 +457,7 @@ public class DomoticCore {
     private boolean incomingMessagesCleared;
     private boolean incomingFilesCleared;
     private DatabaseReference incomingCommands;
+    private DatabaseReference onlineAttribute;
 
     /*
      * WakeOnLan
@@ -615,11 +674,11 @@ public class DomoticCore {
 	@Override
 	public void run() {
 
-	    
-	    // initialize some 
+	    // initialize some
 	    printLog(LogTopics.LOG_TOPIC_MAIN, "Session started");
 
-	    attachFirebaseIncomingMessagesNodeListener();
+	    attachListeners();
+	    
 
 	    // attiva i timer per i task periodici
 	    deviceStatusUpdateTimer = new Timer();
@@ -643,7 +702,7 @@ public class DomoticCore {
 
 	    }
 
-	    detachFirebaseIncomingMessagesNodeListener();
+	    detachListeners();
 
 	    // cancella i timer per i task periodici
 	    deviceStatusUpdateTimer.cancel();
@@ -706,8 +765,9 @@ public class DomoticCore {
 	if (!connectToFirebaseDatabase())
 	    System.exit(ExitCodes.EXIT_CODE___UNABLE_TO_CONNECT_TO_FIREBASE);
 
-	incomingCommands = FirebaseDatabase.getInstance().getReference(String.format("/Groups/%s/Devices/%s/IncomingCommands", groupName, thisDevice));
-
+	incomingCommands = FirebaseDatabase.getInstance().getReference(String.format("/%s/%s/%s/%s/%s", GROUP_NODE, groupName, DEVICES_NODE, thisDevice, INCOMING_COMMANDS_NODE));
+	onlineAttribute = FirebaseDatabase.getInstance().getReference(String.format("/%s/%s/%s/%s/%s", GROUP_NODE, groupName, DEVICES_NODE, thisDevice, ONLINE_NODE));
+		
 	printLog(LogTopics.LOG_TOPIC_INIT, "Connection to Firebase Database successfully completed.");
 
 	/*
@@ -1158,13 +1218,13 @@ public class DomoticCore {
 	    if (vpnConnectionConfigFilePath != null) {
 
 		try {
-		    
+
 		    execShellCommand("domotic-connect_vpn");
 
 		} catch (IOException e) {
-		    
+
 		    printErrorLog(e);
-		    
+
 		}
 
 	    }
@@ -1176,23 +1236,21 @@ public class DomoticCore {
 	    if (vpnConnectionConfigFilePath != null) {
 
 		try {
-		    
+
 		    execShellCommand("domotic-disconnect_vpn");
-		    
+
 		} catch (IOException e) {
-		    
+
 		    printErrorLog(e);
-		
+
 		}
 
 	    }
 
 	    return null;
-	    
-	case "__update_vpn_status":
-	    
-	    updateVPNStatus();
-	    
+
+	case "__request_log_on_db":
+
 	    return null;
 
 	case "__update_status":
@@ -1207,6 +1265,11 @@ public class DomoticCore {
 		updateNetworkStatus();
 		break;
 
+	    case "vpn":
+		updateVPNStatus();
+		updateNetworkStatus();
+		break;
+
 	    default:
 		break;
 
@@ -1215,7 +1278,7 @@ public class DomoticCore {
 	    return null;
 
 	default:
-	    
+
 	    return new RemoteCommand(ReplyPrefix.UNRECOGNIZED_COMMAND.prefix(), "null", thisDevice);
 
 	} /* fine switch lettura comandi */
@@ -1405,7 +1468,7 @@ public class DomoticCore {
 
     }
 
-    private void attachFirebaseIncomingMessagesNodeListener() {
+    private void attachListeners() {
 
 	incomingCommands.removeValue(new CompletionListener() {
 
@@ -1429,14 +1492,17 @@ public class DomoticCore {
 	    }
 
 	});
-
+	
+	onlineAttribute.addValueEventListener(onLineStatusListener);
+	
     }
 
-    private void detachFirebaseIncomingMessagesNodeListener() {
+    private void detachListeners() {
 
 	incomingCommands.removeEventListener(incomingMessagesNodeListener);
+	onlineAttribute.removeEventListener(onLineStatusListener);
 
-	printLog(LogTopics.LOG_TOPIC_INCHK, "Listener for incoming messages on Firebase node detached.");
+	printLog(LogTopics.LOG_TOPIC_INCHK, "Listeners on Firebase nodes detached.");
 
     }
 
@@ -2528,7 +2594,7 @@ public class DomoticCore {
     private void updateVPNStatus() {
 
 	try {
-	    
+
 	    String vpnStatus = parseShellCommand("domotic-show_vpn_ip").replaceAll("\n", "");
 	    String deviceNode = String.format("%s/%s/%s/%s", GROUP_NODE, groupName, DEVICES_NODE, thisDevice);
 
@@ -2539,6 +2605,8 @@ public class DomoticCore {
 
 		    if (error != null) {
 			printLog(LogTopics.LOG_TOPIC_ERROR, error.getMessage());
+		    } else {
+			printLog(LogTopics.LOG_TOPIC_FIREBASE_DB, "VPN status updated.");
 		    }
 
 		}
