@@ -47,6 +47,7 @@ import static apps.java.loref.GeneralUtilitiesLibrary.encode;
 import static apps.java.loref.MotionComm.getEventJpegFileName;
 
 import static apps.java.loref.LinuxCommands.*;
+import static apps.java.loref.TransmissionDaemonCommands.*;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -100,9 +101,9 @@ public class DomoticCore {
     private final static String STATUS_NODE = "Status";
     private final static String NETWORK_STATUS_NODE = "NetworkStatus";
     private final static String INCOMING_COMMANDS_NODE = "IncomingCommands";
-    
+
     private final static String ONLINE_NODE = "online";
-    
+
     private final static String LOGS_NODE = "Logs";
 
     private final static String VIDEOSURVEILLANCE_NODE = "VideoSurveillance";
@@ -131,13 +132,49 @@ public class DomoticCore {
     private boolean notificationsEnabled = false;
     private String fcmServiceKey = "";
 
+    private boolean firebaseServicesEnabled = false;
+
+    private void setFirebaseServicesEnabled(boolean value) {
+
+	firebaseServicesEnabled = value;
+
+	if (firebaseServicesEnabled) {
+
+	    printLog(LogTopics.LOG_TOPIC_FIREBASE_DB, "Firebase services available.");
+
+	    // defines the database nodes
+	    incomingCommands = FirebaseDatabase.getInstance().getReference(String.format("/%s/%s/%s/%s/%s", GROUP_NODE, groupName, DEVICES_NODE, thisDevice, INCOMING_COMMANDS_NODE));
+
+	    // registers the device
+	    registerDeviceServices();
+
+	    // attiva i timer per i task periodici
+	    deviceStatusUpdateTimer = new Timer();
+	    deviceStatusUpdateTimer.scheduleAtFixedRate(new DeviceStatusUpdateTask(), 0, deviceStatusUpdateRate);
+
+	    deviceNetworkStatusUpdateTimer = new Timer();
+	    deviceNetworkStatusUpdateTimer.schedule(new deviceNetworkStatusUpdateTask(), 0, deviceNetworkStatusUpdateRate);
+
+	    // attaches the listeners to the database nodes
+	    attachListeners();
+	    
+	    // writes a log entry in the Firebase Database
+	    LogEntry log = new LogEntry(getTimeStamp(), LogTopics.LOG_TOPIC_INET_IN, "Firebase services restored.");
+	    firebaseLog(log);
+
+	} else {
+
+	}
+
+    }
+
     private boolean allowDirectoryNavigation = false;
     private boolean allowTorrentManagement = false;
     private boolean allowVideoSurveillanceManagement = false;
     private boolean allowSSH = false;
 
     private boolean hasDirectoryNavigation = false;
-    private boolean hasTorrent = false;
+    private boolean hasTorrentManagement = false;
     private boolean hasVideoSurveillance = false;
 
     private String logsNode = "";
@@ -172,24 +209,31 @@ public class DomoticCore {
 	    /*
 	     * manage a timeout issue when trying to update the device status
 	     * over the Firebase DB node.
-	     * 
 	     */
 
 	    // print a log message
 	    printLog(LogTopics.LOG_TOPIC_ERROR, "Timeout exceeded during device status update on Firebase DB node.");
+	    
+	    detachListeners();
+	    printLog(LogTopics.LOG_TOPIC_INET_OUT, "Firebase listeners detached.");
 
-	    // register a log entry message in the Firebase DB node.
-	    // this is executed once, according to flag 'notifyUpdateTimeout'
-	    if (notifyUpdateTimeout) {
+	    // cancella i timer per i task periodici
+	    deviceStatusUpdateTimer.cancel();
+	    deviceNetworkStatusUpdateTimer.cancel();
 
-		LogEntry log = new LogEntry(getTimeStamp(), LogTopics.LOG_TOPIC_INET_OUT, "Timeout exceeded during device status update on Firebase DB node.");
-		firebaseLog(log);
+	    printLog(LogTopics.LOG_TOPIC_INET_OUT, "Periodical update tasks cancelled.");
+	    
+	    int nOfApps = FirebaseApp.getApps().size();
+
+	    for (int i = 0; i < nOfApps; i++) {
 		
-		// set the status of the flag to false, so to avoid multiple
-		// logs in case of long periods without internet.
-		notifyUpdateTimeout = false;
-
+		FirebaseApp.getApps().get(i).delete();
+		printLog(LogTopics.LOG_TOPIC_INET_OUT, "Firebase app: " + FirebaseApp.getApps().get(i).getName()+ " deleted.");
+		
 	    }
+
+	    // start the internet connectivity check loop
+	    internetConnectionCheck.start();
 
 	}
 
@@ -222,11 +266,7 @@ public class DomoticCore {
 		    if (firebaseDBUpdateTimeoutTimer != null) {
 			firebaseDBUpdateTimeoutTimer.cancel();
 		    }
-
-		    // sets this flag to true, so to enable the logging of
-		    // timeouts
-		    notifyUpdateTimeout = true;
-
+	
 		} else {
 
 		    printLog(LogTopics.LOG_TOPIC_ERROR, "Unable to update device status in Firebase DB. Message=\"" + error.getMessage() + "\"");
@@ -341,6 +381,36 @@ public class DomoticCore {
     };
 
     /*
+     * Internet connectivity loop check
+     */
+
+    private String internetConnectionCheckServer = DefaultConfigValues.CONNECTIVITY_TEST_SERVER_ADDRESS;
+    private long internetConnectionCheckRate = DefaultConfigValues.CONNECTIVITY_TEST_RATE;
+    private InternetConnectionCheck internetConnectionCheck;
+    private InternetConnectionStatusListener internetConnectionStatusListener = new InternetConnectionStatusListener() {
+
+	@Override
+	public void onConnectionRestored(long inactivityTime) {
+
+	    printLog(LogTopics.LOG_TOPIC_INET_IN, "Internet connectivity available after " + inactivityTime / 1000 + "secs.");
+
+	    // stops the internet connectivity check loop
+	    internetConnectionCheck.stop();
+
+	    setFirebaseServicesEnabled(connectToFirebaseApp());
+
+	}
+
+	@Override
+	public void onConnectionLost() {
+
+	    printLog(LogTopics.LOG_TOPIC_INET_OUT, "Internet connectivity not available.");
+
+	}
+
+    };
+
+    /*
      * Firebase database incoming message management
      */
 
@@ -370,9 +440,7 @@ public class DomoticCore {
 	    // retrieve the incoming message in the form of a new RemoteCommand
 	    // instance
 
-	    GenericTypeIndicator<RemoteCommand> t = new GenericTypeIndicator<RemoteCommand>() {
-	    };
-	    RemoteCommand remoteCommand = snapshot.getValue(t);
+	    RemoteCommand remoteCommand = snapshot.getValue(RemoteCommand.class);
 
 	    // waits for a TICK, this is needed in order to avoid possible
 	    // duplicate
@@ -396,57 +464,11 @@ public class DomoticCore {
     };
 
     /*
-     * 'online' attribute listener
-     */
-
-    ValueEventListener onLineStatusListener = new ValueEventListener() {
-
-	@Override
-	public void onDataChange(DataSnapshot snapshot) {
-	    
-	    // retrieve the value of the 'online' attribute
-	    boolean onlineStatus = (boolean) snapshot.getValue();
-	    
-	    if (!onlineStatus) {
-		
-		// sets the 'online' attribute to true
-		switchToOnline();
-		
-		if(notifyUpdateTimeout){
-		    
-		    // add a log line in the Firebase Database logs node
-		    LogEntry log = new LogEntry(System.currentTimeMillis()+"", LogTopics.LOG_TOPIC_INET_IN, "Connectivity restored, device online.");
-		    firebaseLog(log);
-		    
-		    //TODO: sends a notification with Firebase Instant Messaging service.
-		    		    
-		}
-		
-	    }
-
-	}
-
-	@Override
-	public void onCancelled(DatabaseError error) {
-	    // intentionally blank
-
-	}
-
-    };
-    
-    private void switchToOnline(){
-	
-	// sets the 'online' attribute of the device node in the Firebase Database tree to true
-	FirebaseDatabase.getInstance().getReference(String.format("%s/%s/%s", GROUP_NODE, DEVICES_NODE, thisDevice)).child(ONLINE_NODE).setValueAsync(true);
-	
-    }
-    
-    /*
      * Firebase log
      */
-    
-    private void firebaseLog(LogEntry log){
-    	FirebaseDatabase.getInstance().getReference(GROUP_NODE + "/" + groupName + "/" + LOGS_NODE + "/" + thisDevice).child(getTimeStamp()).setValueAsync(log);
+
+    private void firebaseLog(LogEntry log) {
+	FirebaseDatabase.getInstance().getReference(GROUP_NODE + "/" + groupName + "/" + LOGS_NODE + "/" + thisDevice).child(getTimeStamp()).setValueAsync(log);
     }
 
     /*
@@ -457,8 +479,6 @@ public class DomoticCore {
     private boolean incomingMessagesCleared;
     private boolean incomingFilesCleared;
     private DatabaseReference incomingCommands;
-    private DatabaseReference onlineAttribute;
-
     /*
      * WakeOnLan
      */
@@ -677,40 +697,12 @@ public class DomoticCore {
 	    // initialize some
 	    printLog(LogTopics.LOG_TOPIC_MAIN, "Session started");
 
-	    attachListeners();
-	    
-
-	    // attiva i timer per i task periodici
-	    deviceStatusUpdateTimer = new Timer();
-	    deviceStatusUpdateTimer.scheduleAtFixedRate(new DeviceStatusUpdateTask(), 0, deviceStatusUpdateRate);
-
-	    deviceNetworkStatusUpdateTimer = new Timer();
-	    deviceNetworkStatusUpdateTimer.schedule(new deviceNetworkStatusUpdateTask(), 0, deviceNetworkStatusUpdateRate);
-
 	    while (loopFlag) {
-
-		/*
-		 * Processa i comandi locali
-		 */
-
-		if (readyToProcessLocalCommands)
-		    processLocalCommands();
-
-		/* Dorme per il tempo TICK_TIME_MS */
-
+		
+		// sleeps
 		sleepSafe(TICK_TIME_MS);
 
 	    }
-
-	    detachListeners();
-
-	    // cancella i timer per i task periodici
-	    deviceStatusUpdateTimer.cancel();
-	    deviceNetworkStatusUpdateTimer.cancel();
-
-	    printLog(LogTopics.LOG_TOPIC_MAIN, "End of session");
-
-	    System.exit(0);
 
 	}
 
@@ -718,6 +710,15 @@ public class DomoticCore {
 
     public DomoticCore() {
 
+	System.out.println("");
+	System.out.println("");
+	System.out.println("");
+	System.out.println("--------------------------------------------------------------------------------");
+	System.out.println(GeneralUtilitiesLibrary.getTimeStamp("ddd dd/MMM/YYYY - hh.mm.ss"));
+	System.out.println("--------------------------------------------------------------------------------");
+	System.out.println("");
+	System.out.println("");
+	System.out.println("");
 	printLog(LogTopics.LOG_TOPIC_INIT, "Domotic for linux desktop - by Lorenzo Failla");
 
 	/*
@@ -741,136 +742,52 @@ public class DomoticCore {
 	 * Attempts to delete all the local commands
 	 */
 
-	int[] localCommandPurgeResult = purgeLocalCommands();
-	printLog(LogTopics.LOG_TOPIC_INIT, String.format("%d obsolete local command(s) found.", localCommandPurgeResult[0]));
-
-	if (localCommandPurgeResult[1] > 0) {
-	    printLog(LogTopics.LOG_TOPIC_INIT, String.format("[!] It was not possible to delete %d obsolete local command(s).\nCheck directory \"%s\" for issues", localCommandPurgeResult[1], DefaultConfigValues.LOCAL_COMMAND_DIRECTORY));
-	    System.exit(ExitCodes.EXIT_CODE___UNABLE_TO_DELETE_LOCAL_COMMANDS);
-
-	} else {
-
-	    printLog(LogTopics.LOG_TOPIC_INIT, "All obsolete local command(s) have been purged");
-
-	}
+	// TODO: rimuovere
+	/*
+	 * int[] localCommandPurgeResult = purgeLocalCommands();
+	 * printLog(LogTopics.LOG_TOPIC_INIT,
+	 * String.format("%d obsolete local command(s) found.",
+	 * localCommandPurgeResult[0]));
+	 * 
+	 * if (localCommandPurgeResult[1] > 0) {
+	 * printLog(LogTopics.LOG_TOPIC_INIT, String.
+	 * format("[!] It was not possible to delete %d obsolete local command(s).\nCheck directory \"%s\" for issues"
+	 * , localCommandPurgeResult[1],
+	 * DefaultConfigValues.LOCAL_COMMAND_DIRECTORY));
+	 * System.exit(ExitCodes.EXIT_CODE___UNABLE_TO_DELETE_LOCAL_COMMANDS);
+	 * 
+	 * } else {
+	 * 
+	 * printLog(LogTopics.LOG_TOPIC_INIT,
+	 * "All obsolete local command(s) have been purged");
+	 * 
+	 * }
+	 */
 
 	// Available services probe
-	printLog(LogTopics.LOG_TOPIC_INIT, "Available services probing started.");
 	retrieveServices();
 	printLog(LogTopics.LOG_TOPIC_INIT, "Available services probing completed.");
 
-	// Firebase Database connection
-	printLog(LogTopics.LOG_TOPIC_INIT, "Connection to Firebase Database started.");
+	// initializes and starts the internet connectivity check loop
 
-	if (!connectToFirebaseDatabase())
-	    System.exit(ExitCodes.EXIT_CODE___UNABLE_TO_CONNECT_TO_FIREBASE);
+	internetConnectionCheck = new InternetConnectionCheck(DefaultConfigValues.CONNECTIVITY_TEST_SERVER_ADDRESS);
+	internetConnectionCheck.setConnectivityCheckRate(DefaultConfigValues.CONNECTIVITY_TEST_RATE);
+	internetConnectionCheck.setListener(internetConnectionStatusListener);
+	internetConnectionCheck.start();
 
-	incomingCommands = FirebaseDatabase.getInstance().getReference(String.format("/%s/%s/%s/%s/%s", GROUP_NODE, groupName, DEVICES_NODE, thisDevice, INCOMING_COMMANDS_NODE));
-	onlineAttribute = FirebaseDatabase.getInstance().getReference(String.format("/%s/%s/%s/%s/%s", GROUP_NODE, groupName, DEVICES_NODE, thisDevice, ONLINE_NODE));
-		
-	printLog(LogTopics.LOG_TOPIC_INIT, "Connection to Firebase Database successfully completed.");
+	printLog(LogTopics.LOG_TOPIC_INIT, "Internet connectivity loop check started.");
 
 	/*
-	 * verifica di avere le credenziali per l'accesso a Youtube
+	 * adds a shutdownhook to handle VM shutdown
 	 */
-
-	if (youTubeJSONLocation != "" && youTubeOAuthFolder != "") {
-
-	    printLog(LogTopics.LOG_TOPIC_INIT, "Checking Youtube credentials...");
-
-	    // inizializza uno YouTubeComm e assegna il listener
-	    try {
-
-		youTubeComm = new YouTubeComm(APP_NAME, youTubeJSONLocation, youTubeOAuthFolder);
-		youTubeComm.setListener(youTubeCommListener);
-
-		printLog(LogTopics.LOG_TOPIC_INIT, "Youtube credentials successfully verified.");
-
-	    } catch (YouTubeNotAuthorizedException e) {
-
-		printLog(LogTopics.LOG_TOPIC_INIT, "Failed to verify Youtube credentials. " + e.getMessage());
-	    }
-
-	} else {
-
-	    printLog(LogTopics.LOG_TOPIC_INIT, "WARNING! Cannot Youtube credentials. Please make sure \"YouTubeJSONLocation\" and \"YouTubeOAuthFolder\" are specified in the configuration file.");
-	}
-
-	// Device registration
-	printLog(LogTopics.LOG_TOPIC_INIT, "Device registration started.");
-	deviceRegistered = false;
-
-	int nOfVideoSurveillanceCameras;
-	videoSurveillanceRegistered = 0;
-
-	if (hasVideoSurveillance) {
-	    nOfVideoSurveillanceCameras = motionComm.getNOfThreads();
-	} else {
-	    nOfVideoSurveillanceCameras = -1;
-	}
-
-	registerDeviceServices();
-
-	while (!tcpInitialized && !deviceRegistered && (!hasVideoSurveillance || videoSurveillanceRegistered < nOfVideoSurveillanceCameras) && !incomingMessagesCleared && !incomingFilesCleared) {
-
-	    try {
-
-		Thread.sleep(100);
-
-	    } catch (InterruptedException e) {
-
-		printErrorLog(e);
-		System.exit(1);
-
-	    }
-
-	}
-
-	printLog(LogTopics.LOG_TOPIC_INIT, "Device registration successfully completed.");
-
-	/* adds a shutdownhook to handle VM shutdown */
 	Runtime.getRuntime().addShutdownHook(new Thread() {
 
 	    public void run() {
 
-		/* adds a log */
+		// adds a log
 		printLog(LogTopics.LOG_TOPIC_TERM, "Termination request catched.");
 
-		/* if specified, shuts down the video surveillance daemon */
-		if (hasVideoSurveillance && !videoSurveillanceDaemonShutdownCommand.equals("")) {
-		    try {
-
-			parseShellCommand(videoSurveillanceDaemonShutdownCommand);
-			printLog(LogTopics.LOG_TOPIC_TERM, "Successfully applied \'" + videoSurveillanceDaemonShutdownCommand + "\' command to VideoSurveillance daemon.");
-
-		    } catch (IOException | InterruptedException e) {
-			printErrorLog(e);
-		    }
-		}
-
-		/*
-		 * close the TCP interface
-		 */
-
-		tcpInterface.terminate();
-
-		/* unregister the device, so that client cannot connect to it */
-		unRegisterDeviceServices();
-
-		while (deviceRegistered && (!hasVideoSurveillance || videoSurveillanceRegistered > 0)) {
-
-		    try {
-
-			Thread.sleep(100);
-
-		    } catch (InterruptedException e) {
-			printErrorLog(e);
-		    }
-
-		    /* terminates the main loop */
-		    loopFlag = false;
-
-		}
+		terminate();
 
 	    };
 
@@ -878,6 +795,65 @@ public class DomoticCore {
 
 	// starts the main loop
 	new MainLoop().run();
+
+    }
+
+    private void terminate() {
+
+	/*
+	 * performs all the tasks needed to safely shut down all the instances
+	 * of the server
+	 */
+
+	// interrupts the main loop
+	loopFlag = false;
+
+	printLog(LogTopics.LOG_TOPIC_TERM, "Detaching Firebase listeners...");
+
+	// remove the Firebase ValueEventListeners
+	detachListeners();
+
+	printLog(LogTopics.LOG_TOPIC_TERM, "Cancelling periodical tasks...");
+
+	// cancella i timer per i task periodici
+	deviceStatusUpdateTimer.cancel();
+	deviceNetworkStatusUpdateTimer.cancel();
+
+	printLog(LogTopics.LOG_TOPIC_TERM, "Closing the TCP interface...");
+
+	// close the TCP interface
+	tcpInterface.terminate();
+
+	printLog(LogTopics.LOG_TOPIC_TERM, "Updating Firebase node status...");
+
+	/* unregister the device, so that client cannot connect to it */
+	unRegisterDeviceServices();
+
+	while (deviceRegistered && (!hasVideoSurveillance || videoSurveillanceRegistered > 0)) {
+
+	    sleepSafe(100);
+
+	}
+
+	// if specified, shuts down the video surveillance daemon
+	if (hasVideoSurveillance && !videoSurveillanceDaemonShutdownCommand.equals("")) {
+
+	    try {
+
+		printLog(LogTopics.LOG_TOPIC_TERM, "Shutting down the video surveillance daemon...");
+		parseShellCommand(videoSurveillanceDaemonShutdownCommand);
+
+	    } catch (IOException | InterruptedException e) {
+
+		printErrorLog(e);
+
+	    }
+
+	}
+
+	printLog(LogTopics.LOG_TOPIC_MAIN, "End of session");
+
+	System.exit(0);
 
     }
 
@@ -1418,8 +1394,7 @@ public class DomoticCore {
 
 		@Override
 		public void onComplete(DatabaseError error, DatabaseReference ref) {
-		    //
-		    //
+
 		    String sendStatus;
 		    if (error != null) {
 
@@ -1444,7 +1419,7 @@ public class DomoticCore {
 
     }
 
-    private boolean connectToFirebaseDatabase() {
+    private boolean connectToFirebaseApp() {
 
 	FileInputStream serviceAccount = null;
 
@@ -1477,11 +1452,11 @@ public class DomoticCore {
 
 		if (error == null) {
 
-		    printLog(LogTopics.LOG_TOPIC_INCHK, "Obsolete incoming message purged on Firebase node.");
+		    printLog(LogTopics.LOG_TOPIC_FIREBASE_DB, "Obsolete incoming message purged on Firebase node.");
 
 		    incomingCommands.addChildEventListener(incomingMessagesNodeListener);
 
-		    printLog(LogTopics.LOG_TOPIC_INCHK, "Listener for incoming messages on Firebase node attached.");
+		    printLog(LogTopics.LOG_TOPIC_FIREBASE_DB, "Listener for incoming messages on Firebase node attached.");
 
 		} else {
 
@@ -1492,15 +1467,12 @@ public class DomoticCore {
 	    }
 
 	});
-	
-	onlineAttribute.addValueEventListener(onLineStatusListener);
-	
+
     }
 
     private void detachListeners() {
 
 	incomingCommands.removeEventListener(incomingMessagesNodeListener);
-	onlineAttribute.removeEventListener(onLineStatusListener);
 
 	printLog(LogTopics.LOG_TOPIC_INCHK, "Listeners on Firebase nodes detached.");
 
@@ -1515,12 +1487,10 @@ public class DomoticCore {
 	    try {
 
 		parseShellCommand("uptime");
-		printLog(LogTopics.LOG_TOPIC_INIT, "\'uptime\' check successfully completed.");
 		hasDirectoryNavigation = true;
 
 	    } catch (IOException | InterruptedException e) {
 
-		printLog(LogTopics.LOG_TOPIC_INIT, "\'uptime\' check failed. " + e.getMessage());
 		hasDirectoryNavigation = false;
 
 	    }
@@ -1529,16 +1499,14 @@ public class DomoticCore {
 
 	if (allowTorrentManagement) {
 
-	    printLog(LogTopics.LOG_TOPIC_INIT, "\'transmission-daemon\' check started.");
 	    try {
+
 		parseShellCommand("transmission-remote -n transmission:transmission -l");
-		printLog(LogTopics.LOG_TOPIC_INIT, "\'transmission-daemon\' successfully completed.");
-		hasTorrent = true;
+		hasTorrentManagement = true;
 
 	    } catch (IOException | InterruptedException e) {
 
-		printLog(LogTopics.LOG_TOPIC_INIT, "\'transmission-daemon\' successfully completed. " + e.getMessage());
-		hasTorrent = false;
+		hasTorrentManagement = false;
 
 	    }
 
@@ -1546,89 +1514,7 @@ public class DomoticCore {
 
 	if (allowVideoSurveillanceManagement) {
 
-	    printLog(LogTopics.LOG_TOPIC_INIT, "\'Video surveillance daemon [motion]\' check started.");
-
 	    hasVideoSurveillance = checkVideoSurveillance();
-
-	    if (hasVideoSurveillance) {
-
-		printLog(LogTopics.LOG_TOPIC_INIT, "\'Video surveillance daemon [motion]\' check successfully completed.");
-
-	    } else {
-
-		printLog(LogTopics.LOG_TOPIC_INIT, "\'Video surveillance daemon [motion]\' check failed.");
-
-	    }
-
-	}
-
-    }
-
-    private String getTorrentsList() {
-
-	try {
-
-	    return parseShellCommand("transmission-remote -n transmission:transmission -l");
-
-	} catch (IOException | InterruptedException e) {
-
-	    return null;
-
-	}
-
-    }
-
-    private String startTorrent(String torrentID) {
-
-	try {
-
-	    return parseShellCommand("transmission-remote -n transmission:transmission -t" + torrentID + " -s");
-
-	} catch (IOException | InterruptedException e) {
-
-	    return null;
-
-	}
-
-    }
-
-    private String stopTorrent(String torrentID) {
-
-	try {
-
-	    return GeneralUtilitiesLibrary.parseShellCommand("transmission-remote -n transmission:transmission -t" + torrentID + " -S");
-
-	} catch (IOException | InterruptedException e) {
-
-	    return null;
-
-	}
-
-    }
-
-    private String removeTorrent(String torrentID) {
-
-	try {
-
-	    return GeneralUtilitiesLibrary.parseShellCommand("transmission-remote -n transmission:transmission -t" + torrentID + " -r");
-
-	} catch (IOException | InterruptedException e) {
-
-	    return null;
-
-	}
-
-    }
-
-    private String addTorrent(String torrentID) {
-
-	try {
-
-	    return GeneralUtilitiesLibrary.parseShellCommand("transmission-remote -n transmission:transmission -a " + torrentID);
-
-	} catch (IOException | InterruptedException e) {
-
-	    return null;
 
 	}
 
@@ -1959,7 +1845,7 @@ public class DomoticCore {
 	deviceData.put("deviceName", thisDevice);
 	deviceData.put("online", true);
 	deviceData.put("hasDirectoryNavigation", hasDirectoryNavigation);
-	deviceData.put("hasTorrentManagement", hasTorrent);
+	deviceData.put("hasTorrentManagement", hasTorrentManagement);
 	deviceData.put("hasWakeOnLan", wolDevices.length > 0);
 	deviceData.put("hasSSH", allowSSH);
 	deviceData.put("hasVideoSurveillance", hasVideoSurveillance);
@@ -2624,3 +2510,68 @@ public class DomoticCore {
     }
 
 }
+
+/*
+ * 
+ * if (youTubeJSONLocation != "" && youTubeOAuthFolder != "") {
+ * 
+ * printLog(LogTopics.LOG_TOPIC_INIT, "Checking Youtube credentials...");
+ * 
+ * // inizializza uno YouTubeComm e assegna il listener
+ * try {
+ * 
+ * youTubeComm = new YouTubeComm(APP_NAME, youTubeJSONLocation,
+ * youTubeOAuthFolder);
+ * youTubeComm.setListener(youTubeCommListener);
+ * 
+ * printLog(LogTopics.LOG_TOPIC_INIT,
+ * "Youtube credentials successfully verified.");
+ * 
+ * } catch (YouTubeNotAuthorizedException e) {
+ * 
+ * printLog(LogTopics.LOG_TOPIC_INIT, "Failed to verify Youtube credentials. " +
+ * e.getMessage());
+ * }
+ * 
+ * } else {
+ * 
+ * printLog(LogTopics.LOG_TOPIC_INIT,
+ * "WARNING! Cannot Youtube credentials. Please make sure \"YouTubeJSONLocation\" and \"YouTubeOAuthFolder\" are specified in the configuration file."
+ * );
+ * }
+ * 
+ * // Device registration
+ * printLog(LogTopics.LOG_TOPIC_INIT, "Device registration started.");
+ * deviceRegistered = false;
+ * 
+ * int nOfVideoSurveillanceCameras;
+ * videoSurveillanceRegistered = 0;
+ * 
+ * if (hasVideoSurveillance) {
+ * nOfVideoSurveillanceCameras = motionComm.getNOfThreads();
+ * } else {
+ * nOfVideoSurveillanceCameras = -1;
+ * }
+ * 
+ * registerDeviceServices();
+ * 
+ * while (!tcpInitialized && !deviceRegistered && (!hasVideoSurveillance ||
+ * videoSurveillanceRegistered < nOfVideoSurveillanceCameras) &&
+ * !incomingMessagesCleared && !incomingFilesCleared) {
+ * 
+ * try {
+ * 
+ * Thread.sleep(100);
+ * 
+ * } catch (InterruptedException e) {
+ * 
+ * printErrorLog(e);
+ * System.exit(1);
+ * 
+ * }
+ * 
+ * }
+ * 
+ * printLog(LogTopics.LOG_TOPIC_INIT,
+ * "Device registration successfully completed.");
+ */

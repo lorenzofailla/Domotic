@@ -22,5 +22,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/FirebaseCloudUploader"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/YouTubeComm"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/SocketResponder"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/InternetConnectionCheck"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
