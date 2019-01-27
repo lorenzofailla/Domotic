@@ -1,0 +1,101 @@
+ private void processLocalCommands() {
+
+	/*
+	 * inhibit the system to call this method
+	 */
+	readyToProcessLocalCommands = false;
+
+	/*
+	 * obtain an array with all the local command files
+	 */
+
+	File[] localCmdFiles = getLocalCommandsFiles();
+
+	/*
+	 * if local command files are found, for each local command file an
+	 * execution
+	 * thread is created and the file is deleted
+	 */
+
+	if (localCmdFiles != null) {
+
+	    for (File f : localCmdFiles) {
+
+		/*
+		 * create a new thread to execute the local command
+		 */
+		RemoteCommand command = parseLocalCommand(readPlainTextFromFile(f));
+
+		new Thread() {
+
+		    public void run() {
+
+			replyToRemoteCommand(command, String.format("file://%s", f.getAbsolutePath()));
+
+		    }
+
+		}.start();
+
+		/*
+		 * delete the local command file
+		 */
+
+		f.delete();
+
+	    }
+
+	}
+
+	/*
+	 * allow the system to call this method
+	 */
+	readyToProcessLocalCommands = true;
+
+    }
+
+    private int[] purgeLocalCommands() {
+
+	/*
+	 * Deletes all the local commands. Returns a size 2 integer array:
+	 * position 0 is
+	 * the number of files to be deleted, position 1 is the number of not
+	 * deleted
+	 * files
+	 */
+
+	int[] result = { 0, 0 };
+	int deletedFiles = 0;
+
+	File[] obsoleteLocalCmdFiles = getLocalCommandsFiles();
+
+	if (obsoleteLocalCmdFiles != null) {
+	    for (File f : obsoleteLocalCmdFiles) {
+		if (f.delete())
+		    deletedFiles++;
+		;
+	    }
+
+	    result[0] = obsoleteLocalCmdFiles.length;
+	    result[1] = obsoleteLocalCmdFiles.length - deletedFiles;
+
+	}
+
+	return result;
+
+    }
+
+    private File[] getLocalCommandsFiles() {
+
+	FilenameFilter filter = new FilenameFilter() {
+
+	    @Override
+	    public boolean accept(File dir, String name) {
+		return name.toLowerCase().endsWith(".cmd");
+	    }
+
+	};
+
+	File localCmdDirectory = new File(DefaultConfigValues.LOCAL_COMMAND_DIRECTORY);
+	return localCmdDirectory.listFiles(filter);
+
+    }

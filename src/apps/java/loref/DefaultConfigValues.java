@@ -30,9 +30,19 @@
 
 package apps.java.loref;
 
-public class DefaultConfigValues {
+/**
+ * Provides default values of configuration parameters
+ *
+ * @author lore_f.
+ *         Created 18 dic 2018.
+ */
 
+@SuppressWarnings({"javadoc", "unused"})
+public class DefaultConfigValues {
+    
     public static final String CONFIG_FILE_LOCATION = "/etc/domotic/domotic.conf";
+    public static final String USERS_FILE_LOCATION = "/etc/domotic/users";
+    
     public static final String LOCAL_COMMAND_DIRECTORY = "/var/lib/domotic";
 
     public static final String ERROR = "[error]";
@@ -45,7 +55,38 @@ public class DefaultConfigValues {
 
     public final static long FIREBASE_DB_UPDATE_TIMEOUT = 10000L;
 
-    public final static String CONNECTIVITY_TEST_SERVER_ADDRESS = "http://lorenzofailla.esy.es/domotic/domotic-connection-test.php";
+    public final static String CONNECTIVITY_TEST_SERVER_ADDRESS = "http://lorenzofailla.000webhostapp.com/domotic/domotic-connection-test.php";
     public final static long CONNECTIVITY_TEST_RATE = 10000L;
+    
+    public static final String HEADER_REPLY = "@REPLY";
+    
+    public final static String APP_NAME = "Domotic";
+
+    public final static String GROUP_NODE = "Groups";
+    public final static String DEVICES_NODE = "Devices";
+    public final static String STATUS_DATA_NODE = "StatusData";
+    public final static String NETWORK_DATA_NODE = "NetworkData";
+    public final static String STATIC_DATA_NODE = "StaticData";
+    public final static String TMATE_DATA_NODE = "TMateData";
+
+    public final static String INCOMING_COMMANDS_NODE = "IncomingCommands";
+
+    public final static String ONLINE_NODE = "online";
+
+    public final static String LOGS_NODE = "Logs";
+
+    public final static String VIDEOSURVEILLANCE_NODE = "VideoSurveillance";
+    public final static String AVAILABLE_CAMERAS_NODE = "AvailableCameras";
+    public final static String VIDEO_STREAMING_NODE = "StreamingData";
+
+    public final static String LOCAL_CMD_PREFIX = "file://";
+    public final static String LOCAL_TCP_PREFIX = "tcp://";
+    
+    public final static String LOGFILE_LOCATION = "/var/log/domotic.log";
+
+    public final static long TICK_TIME_MS = 1000L;
+
+    public final static int REBOOT = 1;
+    public final static int SHUTDOWN = 2;
 
 }
