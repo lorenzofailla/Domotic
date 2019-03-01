@@ -1,0 +1,1 @@
+ffmpeg -nostats -loglevel 0 -f lavfi -i anullsrc=channel_layout=stereo:sample_rate=44100 -r 5 -i http://localhost:8081 -r 5 -f flv rtmp://a.rtmp.youtube.com/live2/p4au-77x6-2770-ayq0

@@ -1,0 +1,40 @@
+Root
+	Groups
+		$GroupName
+			Name
+			Description
+			validuser_$ValidUserID[=true]
+		
+	Devices
+		$GroupName
+			$DeviceName
+		
+	VideoCameras
+		$GroupName
+			$VideoCameraID
+				LastShotData
+				?
+				?
+	MotionEvents
+		$GroupName
+			$MotionEventID
+				?
+				?
+				?
+	Messages
+		$GroupName
+			$MessageID
+				?
+	Events
+		$GroupName
+			$EventID
+				DeviceID
+				?
+	IncomingCommands
+		$GroupName
+			$DeviceName
+				$CommandID
+					Header
+					Body
+					ReplyTo
+			
