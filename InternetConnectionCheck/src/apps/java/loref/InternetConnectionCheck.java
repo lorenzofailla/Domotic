@@ -39,7 +39,7 @@ import static apps.java.loref.NetworkTools.checkInetConnection;
  * @author lore_f. Created 23 dic 2018.
  */
 
-@SuppressWarnings({"javadoc","unused"})
+@SuppressWarnings({ "javadoc", "unused" })
 public class InternetConnectionCheck {
 
 	private String connectivityTestServerAddress = Defaults.CONNECTIVITY_SERVER;
@@ -67,9 +67,10 @@ public class InternetConnectionCheck {
 	}
 
 	private boolean connectionAvailable;
+	private boolean connectionStatus;
 
 	public boolean getConnectionAvailable() {
-		return this.connectionAvailable;
+		return this.connectionStatus;
 	}
 
 	private InternetConnectionStatusListener listener;
@@ -91,14 +92,17 @@ public class InternetConnectionCheck {
 		public void run() {
 
 			InternetConnectionCheck.this.lastTimeConnectionAvailable = System.currentTimeMillis();
+
 			InternetConnectionCheck.this.connectionAvailable = !checkInetConnection(
 					InternetConnectionCheck.this.connectivityTestServerAddress);
+			InternetConnectionCheck.this.connectionStatus = !(InternetConnectionCheck.this.connectionAvailable);
 
 			while (InternetConnectionCheck.this.mainThreadActivity && (InternetConnectionCheck.this.listener != null)) {
 
 				boolean connectionStatus = checkInetConnection(
 						InternetConnectionCheck.this.connectivityTestServerAddress);
 
+				
 				if (connectionStatus != InternetConnectionCheck.this.connectionAvailable) {
 
 					if (connectionStatus) {
@@ -112,9 +116,9 @@ public class InternetConnectionCheck {
 						InternetConnectionCheck.this.listener.onConnectionLost();
 
 					}
-
+					
 					InternetConnectionCheck.this.connectionAvailable = connectionStatus;
-
+					InternetConnectionCheck.this.connectionStatus = InternetConnectionCheck.this.connectionAvailable;
 				}
 
 				sleepSafe(InternetConnectionCheck.this.connectivityCheckRate);

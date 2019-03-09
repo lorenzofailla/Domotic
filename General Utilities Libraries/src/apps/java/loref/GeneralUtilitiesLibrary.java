@@ -249,42 +249,6 @@ public class GeneralUtilitiesLibrary {
 
 	}
 
-	public static String getTimeStamp(String format) {
-
-		GregorianCalendar gc = new GregorianCalendar();
-		SimpleDateFormat sdf = new SimpleDateFormat(format);
-		return sdf.format(gc.getTime());
-
-	}
-
-	public static String getTimeStamp() {
-
-		return String.format("%d", System.currentTimeMillis());
-
-	}
-
-	public static void printLog(String logTopic, String logContent) {
-
-		String content = logContent.replace("\n", "\\n");
-		long contentLength = logContent.length();
-
-		if (contentLength > MAX_LOG_CONTENT_LENGTH) {
-
-			content = logContent.substring(0, (int) MAX_LOG_CONTENT_LENGTH)
-					+ String.format("... (lenght=%d)", contentLength);
-
-		}
-
-		System.out.println(getTimeStamp("yyyy-MM-dd HH.mm.ss,SSS") + ";" + logTopic + ";" + "[" + content + "]");
-
-	}
-
-	public static void printErrorLog(Exception e) {
-
-		printLog("ERROR", e.getMessage());
-
-	}
-
 	public static boolean connectToFirebaseDatabase(String locationOfJSONAuthFile, String databaseURL) {
 
 		File jsonAuthFileLocation = new File(locationOfJSONAuthFile);

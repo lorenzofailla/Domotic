@@ -34,11 +34,10 @@ import static apps.java.loref.FCMUtilities.sendFCM;
 import static apps.java.loref.GeneralUtilitiesLibrary.compress;
 import static apps.java.loref.GeneralUtilitiesLibrary.execShellCommand;
 import static apps.java.loref.GeneralUtilitiesLibrary.getFileAsBytes;
-import static apps.java.loref.GeneralUtilitiesLibrary.getTimeStamp;
 import static apps.java.loref.GeneralUtilitiesLibrary.parseLocalCommand;
 import static apps.java.loref.GeneralUtilitiesLibrary.parseJSON;
 import static apps.java.loref.GeneralUtilitiesLibrary.parseShellCommand;
-import static apps.java.loref.GeneralUtilitiesLibrary.printLog;
+
 import static apps.java.loref.GeneralUtilitiesLibrary.readPlainTextFromFile;
 import static apps.java.loref.GeneralUtilitiesLibrary.readLinesFromFile;
 import static apps.java.loref.GeneralUtilitiesLibrary.sleepSafe;
@@ -52,6 +51,11 @@ import static apps.java.loref.TransmissionDaemonCommands.*;
 
 import static apps.java.loref.LogUtilities.exceptionLog_REDXTERM;
 import static apps.java.loref.LogUtilities.firebaseErrorLog_XTERM;
+import static apps.java.loref.LogUtilities.printLog;
+import static apps.java.loref.LogUtilities.printLogColor;
+
+
+import static apps.java.loref.TimeUtilities.getTimeStamp;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -483,9 +487,7 @@ public class DomoticCore {
 
 	};
 
-	/*
-	 * Internet connectivity loop check
-	 */
+	// Internet connectivity loop check
 
 	private String internetConnectionCheckServer = DefaultConfigValues.CONNECTIVITY_TEST_SERVER_ADDRESS;
 	private long internetConnectionCheckRate = DefaultConfigValues.CONNECTIVITY_TEST_RATE;
@@ -496,7 +498,7 @@ public class DomoticCore {
 		public void onConnectionRestored(long inactivityTime) {
 
 			printLog(LogTopics.LOG_TOPIC_INET_IN,
-					"Internet connectivity available after " + inactivityTime / 1000 + "secs.");
+					"Internet connectivity available after " + inactivityTime / 1000 + " seconds.");
 
 			// stops the internet connectivity check loop
 			DomoticCore.this.internetConnectionCheck.stop();
@@ -514,9 +516,7 @@ public class DomoticCore {
 
 	};
 
-	/*
-	 * Firebase database incoming message management
-	 */
+	// Firebase database incoming message management
 
 	ChildEventListener incomingMessagesNodeListener = new ChildEventListener() {
 
@@ -541,20 +541,15 @@ public class DomoticCore {
 		@Override
 		public void onChildAdded(DataSnapshot snapshot, String previousChildName) {
 
-			// retrieve the incoming message in the form of a new RemoteCommand
-			// instance
+			// retrieve the incoming message in the form of a new RemoteCommand instance
 
 			RemoteCommand remoteCommand = snapshot.getValue(RemoteCommand.class);
 
-			// waits for a TICK, this is needed in order to avoid possible
-			// duplicate
-			// timestamps
+			// waits for a TICK, this is needed in order to avoid possible duplicate timestamps
 
 			sleepSafe(10);
 
-			// performs the needed operations according to the content of the
-			// incoming
-			// message
+			// performs the needed operations according to the content of the incoming message
 			replyToRemoteCommand(remoteCommand, snapshot.getKey(), null);
 
 		}
@@ -584,33 +579,29 @@ public class DomoticCore {
 
 	};
 
-	/*
-	 * Firebase log
-	 */
+
+	// Firebase log
 
 	private void firebaseLog(LogEntry log) {
 		FirebaseDatabase.getInstance().getReference(getDatabaseNode(DatabaseNodes.LOGS)).child(getTimeStamp())
 				.setValueAsync(log);
 	}
 
-	/*
-	 * Device registration
-	 */
+	// Device registration
+	
 	private boolean deviceRegistered;
 	private int videoSurveillanceRegistered;
 	private boolean incomingMessagesCleared;
 	private boolean incomingFilesCleared;
 	private DatabaseReference incomingCommands;
 
-	/*
-	 * WakeOnLan
-	 */
+	// WakeOnLan
+	
 	private String[] wolDevices;
 	private String[] wolDeviceNames;
 
-	/*
-	 * SSH Shell
-	 */
+	// SSH Shell
+	
 	private HashMap<String, SSHShell> sshShells = new HashMap<String, SSHShell>();
 	private SSHShell sshShell;
 	private String sshUsername;
@@ -618,9 +609,8 @@ public class DomoticCore {
 	private String sshHost;
 	private int sshPort;
 
-	/*
-	 * Videosurveillance
-	 */
+	// Videosurveillance
+	
 	private MotionComm motionComm;
 	private String videoSurveillanceServerAddress = "";
 	private int videoSurveillanceServerControlPort = -1;
@@ -680,16 +670,14 @@ public class DomoticCore {
 							public void onError(FirebaseCloudUploader uploader, Exception e) {
 
 								exceptionLog_REDXTERM(this.getClass(), e);
-								
+
 								// Release the camera slot as busy, to allow the upload of a new frame
 								DomoticCore.this.frameUploadReady.remove(cameraID);
 
 							}
 
 							@Override
-							public void onComplete(FirebaseCloudUploader uploader, Blob info, String shortFileName) {
-
-								// upload of the video file completed
+							public void onComplete(FirebaseCloudUploader uploader, Blob info, String shortFileName) { // upload of the video file completed
 
 								// print log entry
 								printLog(LogTopics.LOG_TOPIC_VSURV,
@@ -753,33 +741,30 @@ public class DomoticCore {
 
 		@Override
 		public void onLiveStreamDeleted(String broadcastID) {
-			// no action foreseen
+			
+			// print a log message
+			printLog(LogTopics.LOG_TOPIC_VSURV, String.format("Broadcast id '%s and relevant bound live stream deleted.", broadcastID));
 
 		}
 
 		@Override
 		public void onLiveStreamCreated(String requestorID, String requestID, String liveStreamID,
-				String liveBroadcastID) {
-			/*
-			 * A live stream has been created
-			 */
+				String liveBroadcastID) { // A live stream has been created
 
 			printLog(LogTopics.LOG_TOPIC_VSURV,
 					String.format("Youtube live stream created for camera ID: %s, Live stream ID: %s, Broadcast ID: %s",
 							requestID, liveStreamID, liveBroadcastID));
 
-			String inputStreamURL = DomoticCore.this.motionComm.getStreamFullURL(requestID);
-			String shellCommand[] = new String[] { "/bin/sh", "-c",
-					String.format("yt-stream %s %d %s %s %s", inputStreamURL,
-							DomoticCore.this.motionComm.getCameraStreamFPS(requestID), "05:00", liveStreamID,
-							requestID) };
+			String shellCommand = String.format("domotic-youtube_livestream_start %s %s %s %s %s", requestID,
+					DomoticCore.this.motionComm.getCameraRateFPS(requestID),
+					DomoticCore.this.motionComm.getStreamFullURL(requestID), liveStreamID, "05:00");
+
+			printLog(LogTopics.LOG_TOPIC_VSURV, String.format("Starting shell command '%s'", shellCommand));
 
 			try {
 
-				// printLog(LOG_TOPIC_SHEXEC, shellCommand);
-
 				// lancia il comando bash per avviare lo streaming
-				Runtime.getRuntime().exec(shellCommand);
+				execShellCommand(shellCommand);
 
 				printLog(LogTopics.LOG_TOPIC_VSURV,
 						String.format(
@@ -791,7 +776,6 @@ public class DomoticCore {
 
 				// inserisce i dati relativi allo streaming
 				DomoticCore.this.youTubeLiveBroadcasts.put(requestID, liveBroadcastID);
-
 				DomoticCore.this.youTubeLiveStreamRequestors.put(requestorID, requestID);
 
 			} catch (IOException e) {
@@ -809,8 +793,7 @@ public class DomoticCore {
 		}
 
 		@Override
-		public void onLiveBroadCastDeleted(String broadcastID) {
-			// no action foreseen
+		public void onLiveBroadCastDeleted(String broadcastID) { // no action foreseen
 
 		}
 
@@ -868,16 +851,19 @@ public class DomoticCore {
 	public DomoticCore() {
 
 		System.out.println("--------------------------------------------------------------------------------");
-		System.out.println(GeneralUtilitiesLibrary.getTimeStamp("ddd dd/MMM/YYYY - hh.mm.ss"));
+		System.out.println(getTimeStamp("ddd dd/MMM/YYYY - hh.mm.ss"));
 		System.out.println("--------------------------------------------------------------------------------");
-		System.out.println("");
-		System.out.println("");
-		System.out.println("");
+		System.out.println();
+		System.out.println("####   ###  #   #  ###  ##### ###  ####");
+		System.out.println("#   # #   # ## ## #   #   #    #  #");
+		System.out.println("#   # #   # # # # #   #   #    #  #");
+		System.out.println("#   # #   # #   # #   #   #    #  #");
+		System.out.println("####   ###  #   #  ###    #    #   ####");
+		System.out.println();
+		System.out.println("--------------------------------------------------------------------------------");
 		printLog(LogTopics.LOG_TOPIC_INIT, "Domotic for linux desktop - by Lorenzo Failla");
 
-		/*
-		 * Retrieves all the parameters values from the configuration file
-		 */
+		// Retrieves all the parameters values from the configuration file
 
 		printLog(LogTopics.LOG_TOPIC_INIT, "Configuration file reading started.");
 
@@ -917,7 +903,6 @@ public class DomoticCore {
 		printLog(LogTopics.LOG_TOPIC_INIT, "Internet connectivity loop check started.");
 
 		// adds a shutdownhook to handle the termination of the application
-
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 
 			@Override
@@ -1249,27 +1234,20 @@ public class DomoticCore {
 
 		case "__start_streaming_request":
 
-			// se ï¿½ stata inizializzata l'interfaccia Youtube e si dispone
-			// della
-			// videosorveglianza, crea un canale di streaming
-			if (this.youTubeComm != null && this.hasVideoSurveillance && this.motionComm != null) {
+			if (this.youTubeComm != null && this.hasVideoSurveillance && this.motionComm != null) { // se è stata inizializzata l'interfaccia Youtube e si dispone della videosorveglianza, crea un canale di streaming
 
-				// controlla che vi sia giï¿½ una richiesta streaming in corso
-				// sul
-				// thread specificato. se non c'ï¿½ nessuna richiesta, crea un
-				// nuovo streaming
-				if (this.youTubeLiveStreamRequestors.containsValue(incomingCommand.getBody())) {
+				// controlla che vi sia già una richiesta streaming in corso sul thread specificato.
+				// Se non c'è nessuna richiesta, crea un nuovo streaming
+				if (this.youTubeLiveStreamRequestors.containsValue(incomingCommand.getBody())) { // c'è già una richiesta in corso.
 
-					// c'ï¿½ giï¿½ una richiesta in corso. stampa un messaggio
-					// di
-					// log
+					// stampa un messaggio di log
 					printLog(LogTopics.LOG_TOPIC_VSURV,
-							"Live streaming already requested for camera ID: " + incomingCommand.getBody());
+							"Live streaming already requested for camera ID: " + incomingCommand.getBody()
+									+ ". Total active live streaming: " + this.youTubeLiveStreamRequestors.size());
 
 				} else {
 
-					// non c'ï¿½ una richiesta in corso per il thread
-					// specificato.
+					// non c'è una richiesta in corso per il thread specificato.
 					// registra la richiesta e avvia la creazione dello stream
 					printLog(LogTopics.LOG_TOPIC_VSURV,
 							String.format("Live streaming request registered for requestor:\"%s\", camera ID: \"%s\"",
@@ -1290,6 +1268,7 @@ public class DomoticCore {
 				}
 
 			}
+
 			return null;
 
 		case "__end_streaming_request":
@@ -1297,28 +1276,25 @@ public class DomoticCore {
 			// rimuove il richiedente dalla mappa
 			this.youTubeLiveStreamRequestors.remove(incomingCommand.getReplyto());
 
-			// controlla se c'ï¿½ ancora almeno un richiedente per il thread ID
-			// specificato. se non c'ï¿½ almeno un richiedente rimasto, termina
-			// lo
-			// streaming
+			// controlla se esiste ancora almeno un richiedente per il thread ID
+			// specificato. se non esiste almeno un richiedente, termina lo streaming
 
-			if (!this.youTubeLiveStreamRequestors.containsValue(incomingCommand.getBody())) {
+			if (!this.youTubeLiveStreamRequestors.containsValue(incomingCommand.getBody())) {// non ci sono richiedenti per il thread ID specificato
 
-				// non ci sono richiedenti per il thread ID specificato
-
+				// stampa messaggio di log
 				printLog(LogTopics.LOG_TOPIC_CMDEXEC, String.format(
 						"No more requestors for camera ID %s. Streaming will terminate.", incomingCommand.getBody()));
 				// ferma l'esecuzione dello streaming
 
 				try {
-					// ferma l'esecuzione in background di ffmpeg, chiamando il
-					// kill del process id relativo al thread contenuto nel
-					// corpo del messaggio
 
-					printLog(LogTopics.LOG_TOPIC_SHEXEC, "yt-stopstream " + incomingCommand.getBody());
-					parseShellCommand("yt-stopstream " + incomingCommand.getBody());
+					// ferma l'esecuzione in background dello script 'domotic-youtube_livestream'
+					String command = "domotic-youtube_livestream_stop " + incomingCommand.getBody();
 
-				} catch (IOException | InterruptedException e) {
+					printLog(LogTopics.LOG_TOPIC_SHEXEC, command);
+					execShellCommand(command);
+
+				} catch (IOException e) {
 
 					exceptionLog_REDXTERM(this.getClass(), e);
 
@@ -1445,7 +1421,7 @@ public class DomoticCore {
 
 			return new RemoteCommand(ReplyPrefix.UNRECOGNIZED_COMMAND, "null", this.deviceName);
 
-		} /* fine switch lettura comandi */
+		} // <<<<< fine switch lettura comandi
 
 	}
 
@@ -1506,9 +1482,7 @@ public class DomoticCore {
 	private void replyToRemoteCommand(RemoteCommand rc, String commandID, HashMap<String, Object> params) {
 
 		switch (rc.getHeader()) {
-		// se il comando ï¿½ di shutdown o di reboot, elimina il comando prima
-		// di
-		// eseguire l'operazione
+		// if header is "__shutdown" or "__reboot", remove the command before performing the operation
 
 		case "__shutdown":
 			printLog(LogTopics.LOG_TOPIC_MAIN, "Shutdown; Requested by: " + rc.getReplyto());
@@ -1521,21 +1495,17 @@ public class DomoticCore {
 			break;
 
 		default:
-			//
+
 			// recupera il messaggio di risposta
 			RemoteCommand reply = getReply(rc);
 
-			if (reply != null) {
-				//
-				// risposta ottenuta
-
+			if (reply != null) { // a reply has to be sent
+				
 				// invia la risposta al dispositivo remoto
 				sendMessageToDevice(reply, rc.getReplyto(), commandID, params);
 
-			} else {
-				//
-				// il comando non prevede una risposta
-
+			} else { // no reply has to be sent 
+				
 				// rimuove il comando immediatamente
 				removeCommand(commandID, -1);
 
@@ -1629,9 +1599,6 @@ public class DomoticCore {
 			FirebaseOptions options = new FirebaseOptions.Builder()
 					.setCredentials(GoogleCredentials.fromStream(serviceAccount))
 					.setDatabaseUrl(this.firebaseDatabaseURL).setStorageBucket(this.storageBucketAddress).build();
-
-			this.signOption = SignUrlOption
-					.signWith(ServiceAccountCredentials.fromStream(new FileInputStream(this.jsonAuthFileLocation)));
 
 			FirebaseApp.initializeApp(options);
 			serviceAccount.close();
@@ -1747,9 +1714,9 @@ public class DomoticCore {
 
 		try {
 
-			parseShellCommand("sudo shutdown -h now");
+			execShellCommand("sudo shutdown -h now");
 
-		} catch (IOException | InterruptedException e) {
+		} catch (IOException e) {
 
 			printLog(LogTopics.LOG_TOPIC_EXCEPTION, e.getMessage());
 
@@ -1766,9 +1733,9 @@ public class DomoticCore {
 
 		try {
 
-			parseShellCommand("sudo reboot");
+			execShellCommand("sudo reboot");
 
-		} catch (IOException | InterruptedException e) {
+		} catch (IOException e) {
 
 			exceptionLog_REDXTERM(this.getClass(), e);
 		}
@@ -1929,9 +1896,6 @@ public class DomoticCore {
 							this.sshPort = Integer.parseInt(argument);
 							break;
 
-						case "CameraNames":
-							break;
-
 						case "YouTubeClientJSONLocation":
 							this.youTubeJSONLocation = argument;
 							break;
@@ -1951,13 +1915,13 @@ public class DomoticCore {
 							return false;
 						}
 
-						printLog(LogTopics.LOG_TOPIC_INIT,
+						printLogColor(LogUtilities.BGREENFG, LogTopics.LOG_TOPIC_INIT,
 								String.format("Parameter \"%s\"; value=\"%s\"", command, argument));
 
 					} else {
 
 						// errore di sintassi
-						printLog(LogTopics.LOG_TOPIC_INIT, "Syntax error, please check line \'" + lineIndex
+						printLogColor(LogUtilities.RED, LogTopics.LOG_TOPIC_INIT, "Syntax error, please check line \'" + lineIndex
 								+ "\' in configuration file and try again.");
 						br.close();
 						return false;
@@ -1976,32 +1940,32 @@ public class DomoticCore {
 			boolean configurationComplete = true;
 
 			if (this.groupName == "") {
-				printLog(LogTopics.LOG_TOPIC_INIT, "No group name specified. Cannot continue.");
+				printLogColor(LogUtilities.RED, LogTopics.LOG_TOPIC_INIT, "No group name specified. Cannot continue.");
 				configurationComplete = false;
 			}
 
 			if (this.jsonAuthFileLocation == "") {
-				printLog(LogTopics.LOG_TOPIC_INIT, "No JSON auth file location specified. Cannot continue.");
+				printLogColor(LogUtilities.RED, LogTopics.LOG_TOPIC_INIT, "No JSON auth file location specified. Cannot continue.");
 				configurationComplete = false;
 			}
 
 			if (this.firebaseDatabaseURL == "") {
-				printLog(LogTopics.LOG_TOPIC_INIT, "No Firebase database location specified. Cannot continue.");
+				printLogColor(LogUtilities.RED, LogTopics.LOG_TOPIC_INIT, "No Firebase database location specified. Cannot continue.");
 				configurationComplete = false;
 			}
 
 			if (this.storageBucketAddress == "") {
-				printLog(LogTopics.LOG_TOPIC_INIT, "No Firebase storage bucket address specified. Cannot continue.");
+				printLogColor(LogUtilities.RED, LogTopics.LOG_TOPIC_INIT, "No Firebase storage bucket address specified. Cannot continue.");
 				configurationComplete = false;
 			}
 
 			if (this.allowVideoSurveillanceManagement && this.videoSurveillanceServerAddress == "") {
-				printLog(LogTopics.LOG_TOPIC_INIT, "No video surveillance server address specified. Cannot continue.");
+				printLogColor(LogUtilities.RED, LogTopics.LOG_TOPIC_INIT, "No video surveillance server address specified. Cannot continue.");
 				configurationComplete = false;
 			}
 
 			if (this.allowVideoSurveillanceManagement && this.videoSurveillanceServerControlPort == -1) {
-				printLog(LogTopics.LOG_TOPIC_INIT,
+				printLogColor(LogUtilities.RED, LogTopics.LOG_TOPIC_INIT,
 						"No video surveillance server control port specified. Cannot continue.");
 				configurationComplete = false;
 
@@ -2014,7 +1978,8 @@ public class DomoticCore {
 
 		} catch (IOException e) {
 
-			printLog(LogTopics.LOG_TOPIC_INIT,
+			exceptionLog_REDXTERM(this.getClass(), e);
+			printLogColor(LogUtilities.RED, LogTopics.LOG_TOPIC_INIT,
 					e.getMessage() + " Make sure configuration file exists and is readable at specified location: \'"
 							+ DefaultConfigValues.CONFIG_FILE_LOCATION + "\'");
 			return false;
@@ -2049,10 +2014,40 @@ public class DomoticCore {
 
 				});
 
-		printLog(LogTopics.LOG_TOPIC_INIT, "Starting videocameras node data set on Firebase Database.");
+		if (this.hasVideoSurveillance) { // Device enabled for videosurveillance.
 
-		if (this.hasVideoSurveillance) {
-			
+			if (!(this.youTubeJSONLocation.equals("") || this.youTubeOAuthFolder.equals(""))) { // inizializza un'istanza di YouTubeComm e assegna il listener
+
+				printLog(LogTopics.LOG_TOPIC_INIT, "Checking Youtube credentials...");
+
+				try {
+
+					// initialize a new instance of YouTubeComm class
+					this.youTubeComm = new YouTubeComm(APP_NAME, this.youTubeJSONLocation, this.youTubeOAuthFolder);
+
+					// set the listener
+					this.youTubeComm.setListener(this.youTubeCommListener);
+
+					// print
+					printLog(LogTopics.LOG_TOPIC_INIT, "YouTube credentials successfully verified.");
+
+				} catch (YouTubeNotAuthorizedException e) {
+
+					exceptionLog_REDXTERM(YouTubeComm.class, e);
+
+					printLog(LogTopics.LOG_TOPIC_INIT, "Failed to verify Youtube credentials.");
+				}
+
+			} else {
+
+				this.youTubeComm = null;
+
+				printLog(LogTopics.LOG_TOPIC_INIT,
+						"WARNING! Cannot Youtube credentials. Please make sure \"YouTubeJSONLocation\" and \"YouTubeOAuthFolder\" are specified in the configuration file.");
+			}
+
+			printLog(LogTopics.LOG_TOPIC_INIT, "Starting videocameras node data set on Firebase Database.");
+
 			// initializes the upload slots
 			this.frameUploadReady = new ArrayList<String>();
 
@@ -2067,6 +2062,7 @@ public class DomoticCore {
 						String.format("Processing videocamera n.%d/%d; ID:\"%s\"", i + 1, nOfThreads, cameraID));
 
 				HashMap<String, Object> cameraInfo = this.motionComm.getCameraInfo(cameraID);
+
 				if (this.youTubeComm != null) {
 
 					// inizializza l'HashMap contenente le informazioni dei
@@ -2112,12 +2108,37 @@ public class DomoticCore {
 
 			}
 
+			// Device registration sequence start
+			printLog(LogTopics.LOG_TOPIC_INIT, "Device registration started.");
+			this.deviceRegistered = false;
+
+			int nOfVideoSurveillanceCameras;
+			this.videoSurveillanceRegistered = 0;
+
+			if (this.hasVideoSurveillance) {
+				nOfVideoSurveillanceCameras = this.motionComm.getNOfThreads();
+			} else {
+				nOfVideoSurveillanceCameras = -1;
+			}
+
+			while (!this.tcpInitialized && !this.deviceRegistered
+					&& (!this.hasVideoSurveillance || this.videoSurveillanceRegistered < nOfVideoSurveillanceCameras)
+					&& !this.incomingMessagesCleared && !this.incomingFilesCleared) {
+
+				printLog(LogTopics.LOG_TOPIC_INIT, "Waiting for registration to complete...");
+				sleepSafe(1000);
+
+			}
+
+			printLog(LogTopics.LOG_TOPIC_INIT, "Device registration successfully completed.");
+
 		}
 
 		// delete all previous incoming commands
 
-		FirebaseDatabase.getInstance().getReference(getDatabaseNode(DatabaseNodes.COMMANDS_INCOMING_TOME))
-				.removeValue(new CompletionListener() {
+		FirebaseDatabase.getInstance().getReference(
+
+				getDatabaseNode(DatabaseNodes.COMMANDS_INCOMING_TOME)).removeValue(new CompletionListener() {
 
 					@Override
 					public void onComplete(DatabaseError error, DatabaseReference ref) {
@@ -2685,58 +2706,3 @@ public class DomoticCore {
 	}
 
 }
-
-/*
- * 
- * if (youTubeJSONLocation != "" && youTubeOAuthFolder != "") {
- * 
- * printLog(LogTopics.LOG_TOPIC_INIT, "Checking Youtube credentials...");
- * 
- * // inizializza uno YouTubeComm e assegna il listener try {
- * 
- * youTubeComm = new YouTubeComm(APP_NAME, youTubeJSONLocation,
- * youTubeOAuthFolder); youTubeComm.setListener(youTubeCommListener);
- * 
- * printLog(LogTopics.LOG_TOPIC_INIT,
- * "Youtube credentials successfully verified.");
- * 
- * } catch (YouTubeNotAuthorizedException e) {
- * 
- * printLog(LogTopics.LOG_TOPIC_INIT, "Failed to verify Youtube credentials. " +
- * e.getMessage()); }
- * 
- * } else {
- * 
- * printLog(LogTopics.LOG_TOPIC_INIT,
- * "WARNING! Cannot Youtube credentials. Please make sure \"YouTubeJSONLocation\" and \"YouTubeOAuthFolder\" are specified in the configuration file."
- * ); }
- * 
- * // Device registration printLog(LogTopics.LOG_TOPIC_INIT,
- * "Device registration started."); deviceRegistered = false;
- * 
- * int nOfVideoSurveillanceCameras; videoSurveillanceRegistered = 0;
- * 
- * if (hasVideoSurveillance) { nOfVideoSurveillanceCameras =
- * motionComm.getNOfThreads(); } else { nOfVideoSurveillanceCameras = -1; }
- * 
- * registerDeviceServices();
- * 
- * while (!tcpInitialized && !deviceRegistered && (!hasVideoSurveillance ||
- * videoSurveillanceRegistered < nOfVideoSurveillanceCameras) &&
- * !incomingMessagesCleared && !incomingFilesCleared) {
- * 
- * try {
- * 
- * Thread.sleep(100);
- * 
- * } catch (InterruptedException e) {
- * 
- * exceptionLog_REDXTERM(this.getClass(), e); System.exit(1);
- * 
- * }
- * 
- * }
- * 
- * printLog(LogTopics.LOG_TOPIC_INIT,
- * "Device registration successfully completed.");
- */

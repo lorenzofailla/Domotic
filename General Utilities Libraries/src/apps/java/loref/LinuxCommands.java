@@ -33,74 +33,73 @@ package apps.java.loref;
 import java.io.File;
 import java.io.IOException;
 import static apps.java.loref.GeneralUtilitiesLibrary.parseShellCommand;
-import static apps.java.loref.GeneralUtilitiesLibrary.printErrorLog;
 import static apps.java.loref.LogUtilities.exceptionLog_REDXTERM;
-import static apps.java.loref.GeneralUtilitiesLibrary.parseHttpRequest;
 
+@SuppressWarnings("javadoc")
 public class LinuxCommands {
 
-    public static final String PUBLIC_IP_COMMAND = "curl ifconfig.co";
-    public static final String LOCAL_IP_COMMAND = "hostname -I";
+	public static final String PUBLIC_IP_COMMAND = "curl ifconfig.co";
+	public static final String LOCAL_IP_COMMAND = "hostname -I";
 
-    public static final String ERROR = "[error]";
+	public static final String ERROR = "[error]";
 
-    public static String getUptime() {
+	public static String getUptime() {
 
-	try {
+		try {
 
-	    return parseShellCommand("uptime").replaceAll("[\n\r]", "");
+			return parseShellCommand("uptime").replaceAll("[\n\r]", "");
 
-	} catch (IOException | InterruptedException e) {
+		} catch (IOException | InterruptedException e) {
 
-	    printErrorLog(e);
-	    return ERROR;
+			exceptionLog_REDXTERM(LinuxCommands.class, e);
+			return ERROR;
 
-	}
-
-    }
-
-    public static String getLocalIPAddresses() {
-
-	try {
-
-	    return parseShellCommand(LOCAL_IP_COMMAND).replaceAll("[\r\n]", "");
-
-	} catch (IOException | InterruptedException e) {
-
-	    exceptionLog_REDXTERM(LinuxCommands.class, e);
-	    return ERROR;
+		}
 
 	}
 
-    }
+	public static String getLocalIPAddresses() {
 
-    public static String getPublicIPAddresses() {
+		try {
 
-	try {
+			return parseShellCommand(LOCAL_IP_COMMAND).replaceAll("[\r\n]", "");
 
-	    return parseShellCommand(PUBLIC_IP_COMMAND).replaceAll("[\r\n]", "");
+		} catch (IOException | InterruptedException e) {
 
-	} catch (IOException | InterruptedException e) {
+			exceptionLog_REDXTERM(LinuxCommands.class, e);
+			return ERROR;
 
-	    exceptionLog_REDXTERM(LinuxCommands.class, e);
-	    return ERROR;
+		}
 
 	}
 
-    }
+	public static String getPublicIPAddresses() {
 
-    public static double getFreeSpace(String mountPosition) {
+		try {
 
-	long reply = new File(mountPosition).getUsableSpace();
-	return reply / 1024.0 / 1024.0;
+			return parseShellCommand(PUBLIC_IP_COMMAND).replaceAll("[\r\n]", "");
 
-    }
-    
-    public static double getTotalSpace(String mountPosition) {
+		} catch (IOException | InterruptedException e) {
 
-	long reply = new File(mountPosition).getTotalSpace();
-	return reply / 1024.0 / 1024.0;
+			exceptionLog_REDXTERM(LinuxCommands.class, e);
+			return ERROR;
 
-    }
-    
+		}
+
+	}
+
+	public static double getFreeSpace(String mountPosition) {
+
+		long reply = new File(mountPosition).getUsableSpace();
+		return reply / 1024.0 / 1024.0;
+
+	}
+
+	public static double getTotalSpace(String mountPosition) {
+
+		long reply = new File(mountPosition).getTotalSpace();
+		return reply / 1024.0 / 1024.0;
+
+	}
+
 }

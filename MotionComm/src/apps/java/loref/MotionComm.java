@@ -599,7 +599,7 @@ public class MotionComm {
 
 	public String getStreamFullURL(String cameraID) {
 
-		return getStreamURL(cameraID);
+		return this.protocol + getStreamURL(cameraID);
 
 	}
 
@@ -785,6 +785,11 @@ public class MotionComm {
 	public int getCameraStreamFPS(String cameraID) {
 
 		return Integer.parseInt(getParameter(cameraID, "stream_maxrate"));
+
+	}
+	public int getCameraRateFPS(String cameraID) {
+
+		return Integer.parseInt(getParameter(cameraID, "framerate"));
 
 	}
 
