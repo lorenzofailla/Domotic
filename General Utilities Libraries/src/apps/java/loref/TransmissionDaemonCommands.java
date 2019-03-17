@@ -33,83 +33,97 @@ package apps.java.loref;
 import static apps.java.loref.GeneralUtilitiesLibrary.parseShellCommand;
 import static apps.java.loref.GeneralUtilitiesLibrary.execShellCommand;
 
-
 import java.io.IOException;
 
 public class TransmissionDaemonCommands {
-    
-    public static String getTorrentsList() {
 
-	try {
+	public static String getTorrentsList() {
 
-	    return parseShellCommand("transmission-remote -n transmission:transmission -l");
+		try {
 
-	} catch (IOException | InterruptedException e) {
+			return parseShellCommand("transmission-remote -n transmission:transmission -l");
 
-	    return "error - " + e.getMessage();
+		} catch (IOException | InterruptedException e) {
 
-	}
+			return "error - " + e.getMessage();
 
-    }
-
-    public static String startTorrent(String torrentID) {
-
-	try {
-
-	    execShellCommand("transmission-remote -n transmission:transmission -t" + torrentID + " -s");
-	    return "torrent id: " + torrentID + "started.";
-
-	} catch (IOException e) {
-	    
-	    return "error - " + e.getMessage();
+		}
 
 	}
 
-    }
+	public static String startTorrent(String torrentID) {
 
-    public static String stopTorrent(String torrentID) {
+		try {
 
-	try {
+			execShellCommand("transmission-remote -n transmission:transmission -t" + torrentID + " -s");
+			return "torrent id: " + torrentID + "started.";
 
-	    execShellCommand("transmission-remote -n transmission:transmission -t" + torrentID + " -S");
-	    return "torrent id: " + torrentID + "stopped.";
-	    
-	} catch (IOException e) {
-	    
-	    return "error - " + e.getMessage();
-	    
+		} catch (IOException e) {
+
+			return "error - " + e.getMessage();
+
+		}
+
 	}
 
-    }
+	public static String stopTorrent(String torrentID) {
 
-    public static String removeTorrent(String torrentID) {
+		try {
 
-	try {
+			execShellCommand("transmission-remote -n transmission:transmission -t" + torrentID + " -S");
+			return "torrent id: " + torrentID + "stopped.";
 
-	    execShellCommand("transmission-remote -n transmission:transmission -t" + torrentID + " -r");
-	    return "torrent id: " + torrentID + "removed.";
-	    
-	} catch (IOException e) {
+		} catch (IOException e) {
 
-	    return "error - " + e.getMessage();
-	    
+			return "error - " + e.getMessage();
+
+		}
+
 	}
 
-    }
+	public static String removeTorrent(String torrentID) {
 
-    public static String addTorrent(String torrentID) {
+		try {
 
-	try {
+			execShellCommand("transmission-remote -n transmission:transmission -t" + torrentID + " -r");
+			return "torrent id: " + torrentID + "removed.";
 
-	    execShellCommand("transmission-remote -n transmission:transmission -a " + torrentID);
-	    return "torrent id: " + torrentID + "added.";
-	    
-	} catch (IOException e) {
+		} catch (IOException e) {
 
-	    return "error - " + e.getMessage();
-	    
+			return "error - " + e.getMessage();
+
+		}
+
+	}
+	
+	public static String deleteTorrent(String torrentID) {
+
+		try {
+
+			execShellCommand("transmission-remote -n transmission:transmission -t" + torrentID + " -rad");
+			return "torrent id: " + torrentID + "removed.";
+
+		} catch (IOException e) {
+
+			return "error - " + e.getMessage();
+
+		}
+
 	}
 
-    }
+	public static String addTorrent(String torrentID) {
+
+		try {
+
+			execShellCommand("transmission-remote -n transmission:transmission -a " + torrentID);
+			return "torrent id: " + torrentID + "added.";
+
+		} catch (IOException e) {
+
+			return "error - " + e.getMessage();
+
+		}
+
+	}
 
 }

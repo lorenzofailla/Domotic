@@ -42,6 +42,7 @@ public class DefaultConfigValues {
     
     public static final String CONFIG_FILE_LOCATION = "/etc/domotic/domotic.conf";
     public static final String USERS_FILE_LOCATION = "/etc/domotic/users";
+    public static final String TELEFGRAM_CONFIG_FILE_LOCATION = "/etc/domotic/telegram_bot.json";
 
     public static final String ERROR = "[error]";
 

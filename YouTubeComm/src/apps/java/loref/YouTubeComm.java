@@ -204,12 +204,11 @@ public class YouTubeComm {
 
 	}
 
+	/**
+	 * Elimina il LiveStream il cui ID è passato in argomento. L'eliminazione
+	 * viene fatta all'interno di un thread.
+	 */
 	public void deleteLiveStream(String livestreamID) {
-
-		/*
-		 * Elimina il LiveStream il cui ID è passato in argomento.
-		 * L'eliminazione viene fatta all'interno di un thread.
-		 */
 
 		new Thread() {
 
@@ -286,13 +285,12 @@ public class YouTubeComm {
 
 	}
 
+	/**
+	 * recupera l'ID del LiveStream associato al LiveBroadCast il cui ID è
+	 * passato in argomento restituisce una stringa vuota in caso non sia stato
+	 * possibile trovare l'ID
+	 */
 	public String getBoundLiveStreamID(String broadcastID) {
-
-		/*
-		 * recupera l'ID del LiveStream associato al LiveBroadCast il cui ID è
-		 * passato in argomento restituisce una stringa vuota in caso non sia
-		 * stato possibile trovare l'ID
-		 */
 
 		YouTube.LiveBroadcasts.List request;
 		try {
@@ -312,14 +310,13 @@ public class YouTubeComm {
 
 	}
 
+	/**
+	 * checks if exists an OAuth stored credential for the actual
+	 * credentialDatastore and Client ID as per client secrets JSON.
+	 * 
+	 * returns true if an OAuth stored credential exists, false otherwise.
+	 */
 	public boolean isAuthorized() {
-
-		/*
-		 * checks if exists an OAuth stored credential for the actual
-		 * credentialDatastore and Client ID as per client secrets JSON.
-		 * 
-		 * returns true if an OAuth stored credential exists, false otherwise.
-		 */
 
 		// inizializza il FileDataStoreFactory
 		FileDataStoreFactory fileDataStoreFactory;
@@ -410,7 +407,7 @@ public class YouTubeComm {
 				LiveBroadcastContentDetails liveBroadcastContentDetails = new LiveBroadcastContentDetails();
 				liveBroadcastContentDetails.setEnableAutoStart(true);
 				liveBroadcastContentDetails.setEnableDvr(false);
-				liveBroadcastContentDetails.setEnableEmbed(false);
+				liveBroadcastContentDetails.setEnableEmbed(true);
 
 				LiveBroadcast broadcast = new LiveBroadcast();
 				broadcast.setKind("youtube#liveBroadcast");

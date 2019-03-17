@@ -54,7 +54,6 @@ import static apps.java.loref.LogUtilities.firebaseErrorLog_XTERM;
 import static apps.java.loref.LogUtilities.printLog;
 import static apps.java.loref.LogUtilities.printLogColor;
 
-
 import static apps.java.loref.TimeUtilities.getTimeStamp;
 
 import java.io.BufferedReader;
@@ -74,6 +73,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.google.api.client.util.Base64;
@@ -96,12 +96,11 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.protobuf.GeneratedMessageV3;
 
-import apps.java.loref.FirebaseCloudUploader.FirebaseCloudUploaderListener;
 import apps.java.loref.SSHShell.SSHShellListener;
 
 import static apps.java.loref.DefaultConfigValues.*;
 
-@SuppressWarnings({ "javadoc", "unused" })
+@SuppressWarnings({ "javadoc" })
 
 public class DomoticCore {
 
@@ -111,10 +110,11 @@ public class DomoticCore {
 	private String deviceName;
 	private String groupName;
 	private String storageBucketAddress;
-	private SignUrlOption signOption;
 
 	private boolean loopFlag = true;
 	private boolean exit = false;
+	private boolean debugMode = false;
+
 	private final long runningSince = System.currentTimeMillis();
 
 	private boolean notificationsEnabled = false;
@@ -278,6 +278,10 @@ public class DomoticCore {
 
 	private void goOffLine() {
 
+		// pause the Firebase Uploader
+		DomoticCore.this.firebaseCloudUploader.pause();
+		printLog(LogTopics.LOG_TOPIC_INET_OUT, "Firebase cloud upload engine paused.");
+
 		detachListeners();
 		printLog(LogTopics.LOG_TOPIC_INET_OUT, "Firebase listeners detached.");
 
@@ -408,15 +412,35 @@ public class DomoticCore {
 
 	}
 
-	/*
-	 * VPN connection
-	 */
+	// ----- ---- --- -- - Telegram bot - -- --- ---- -----
+	
+	private TelegramBotComm telegramBot = null;
+	private boolean telegramBotActive = false;
+	
+	private TelegramBotCommListener telegramBotCommListener = new TelegramBotCommListener() {
+		
+		@Override
+		public void onRegistrationFailure() {
+			DomoticCore.this.telegramBotActive = false;
+			
+		}
+		
+		@Override
+		public void onBotRegisterationSuccess() {
+			DomoticCore.this.telegramBotActive = true;
+			
+		}
+	};
+	
+	
+	// ----- ---- --- -- - VPN connection - -- --- ---- -----
 
 	private String vpnConnectionConfigFilePath = null;
 
-	/*
-	 * TCP interface
-	 */
+	// ----- ---- --- -- - Firebase cloud uploader
+	private FirebaseCloudUploader firebaseCloudUploader = new FirebaseCloudUploader();
+
+	// ----- ---- --- -- - TCP interface
 
 	SocketResponder tcpInterface = new SocketResponder();
 	private boolean tcpInitialized = false;
@@ -503,6 +527,13 @@ public class DomoticCore {
 			// stops the internet connectivity check loop
 			DomoticCore.this.internetConnectionCheck.stop();
 
+			// resume the Firebase Uploader
+			DomoticCore.this.firebaseCloudUploader.resume();
+			printLog(LogTopics.LOG_TOPIC_INET_OUT, "Firebase cloud upload engine resumed.");
+			
+			// dispatch a notification on all the Telegram recipients
+			DomoticCore.this.telegramBot.dispatchMessageToAll("I am back online after " + inactivityTime / 1000 + " seconds of unavailable connectivity.");
+
 			setFirebaseServicesEnabled(connectToFirebaseApp());
 
 		}
@@ -579,7 +610,6 @@ public class DomoticCore {
 
 	};
 
-
 	// Firebase log
 
 	private void firebaseLog(LogEntry log) {
@@ -588,7 +618,7 @@ public class DomoticCore {
 	}
 
 	// Device registration
-	
+
 	private boolean deviceRegistered;
 	private int videoSurveillanceRegistered;
 	private boolean incomingMessagesCleared;
@@ -596,12 +626,12 @@ public class DomoticCore {
 	private DatabaseReference incomingCommands;
 
 	// WakeOnLan
-	
+
 	private String[] wolDevices;
 	private String[] wolDeviceNames;
 
 	// SSH Shell
-	
+
 	private HashMap<String, SSHShell> sshShells = new HashMap<String, SSHShell>();
 	private SSHShell sshShell;
 	private String sshUsername;
@@ -610,12 +640,11 @@ public class DomoticCore {
 	private int sshPort;
 
 	// Videosurveillance
-	
+
 	private MotionComm motionComm;
 	private String videoSurveillanceServerAddress = "";
 	private int videoSurveillanceServerControlPort = -1;
 	private String videoSurveillanceDaemonShutdownCommand = "";
-	private List<String> frameUploadReady;
 
 	private String youTubeJSONLocation = "";
 	private String youTubeOAuthFolder = "";
@@ -646,11 +675,7 @@ public class DomoticCore {
 
 			// By default, stores the the received camera data into the relevant Firebase Database node.
 
-			if (DomoticCore.this.internetConnectionCheck.getConnectionAvailable()
-					&& !DomoticCore.this.frameUploadReady.contains(cameraID)) { // The camera slot is ready for a new upload
-
-				// Mark the camera slot as busy, to avoid concurrent upload of frames
-				DomoticCore.this.frameUploadReady.add(cameraID);
+			if (!DomoticCore.this.firebaseCloudUploader.isPaused()) {
 
 				// set the position in the Firebase Cloud Storage
 				String remotePosition = VIDEOCAMERA_SHOT_CLOUD_URL
@@ -663,24 +688,21 @@ public class DomoticCore {
 						String.format("Starting upload of camera frame on position: \"%s\"", remotePosition));
 
 				// set up the FirebaseCloudUploader and start the upload operation
-				FirebaseCloudUploader uploader = new FirebaseCloudUploader(frameImageData, remotePosition)
-						.setListener(new FirebaseCloudUploaderListener() {
+				DomoticCore.this.firebaseCloudUploader.addToQueue(frameImageData, remotePosition,
+						new FirebaseUploadItemListener() {
 
 							@Override
-							public void onError(FirebaseCloudUploader uploader, Exception e) {
+							public void onError(Exception e) {
 
 								exceptionLog_REDXTERM(this.getClass(), e);
-
-								// Release the camera slot as busy, to allow the upload of a new frame
-								DomoticCore.this.frameUploadReady.remove(cameraID);
 
 							}
 
 							@Override
-							public void onComplete(FirebaseCloudUploader uploader, Blob info, String shortFileName) { // upload of the video file completed
+							public void onComplete(Blob info, String uploadID) { // upload of the video file completed
 
 								// print log entry
-								printLog(LogTopics.LOG_TOPIC_VSURV,
+								printLogColor(LogUtilities.GREEN, LogTopics.LOG_TOPIC_VSURV,
 										"Frame data successfully uploaded (" + info.getSize() + " bytes).");
 
 								HashMap<String, Object> frameData = new HashMap<String, Object>();
@@ -695,9 +717,9 @@ public class DomoticCore {
 											public void onComplete(DatabaseError error, DatabaseReference ref) {
 
 												if (error == null) {
-													printLog(LogTopics.LOG_TOPIC_VSURV,
+													printLogColor(LogUtilities.GREEN, LogTopics.LOG_TOPIC_VSURV,
 															String.format(
-																	"Videocamera shot frame data info successfully updated for camera id:%s.",
+																	"Videocamera shot frame data info successfully updated for camera id: '%s'.",
 																	cameraID));
 												} else {
 
@@ -709,12 +731,9 @@ public class DomoticCore {
 
 										});
 
-								// Release the camera slot as busy, to allow the upload of a new frame
-								DomoticCore.this.frameUploadReady.remove(cameraID);
-
 							}
 
-						}).startUpload();
+						});
 
 			} else { // upload slot for this camera ID is busy
 
@@ -741,9 +760,10 @@ public class DomoticCore {
 
 		@Override
 		public void onLiveStreamDeleted(String broadcastID) {
-			
+
 			// print a log message
-			printLog(LogTopics.LOG_TOPIC_VSURV, String.format("Broadcast id '%s and relevant bound live stream deleted.", broadcastID));
+			printLog(LogTopics.LOG_TOPIC_VSURV,
+					String.format("Broadcast id '%s and relevant bound live stream deleted.", broadcastID));
 
 		}
 
@@ -888,6 +908,35 @@ public class DomoticCore {
 
 		this.tcpInterface.setListener(this.tcpInterfaceListener);
 		this.tcpInterface.init();
+		
+		// Initialize the Telegram bot
+		printLog(LogTopics.LOG_TOPIC_INIT, "Initializing Telegram bot...");
+		
+		JSONObject telegramBotConfigJson = new JSONObject(readPlainTextFromFile(new File(TELEFGRAM_CONFIG_FILE_LOCATION)));
+		if (telegramBotConfigJson.has("user_id") && telegramBotConfigJson.has("token")){ // inizializza la classe del bot Telegram
+			
+			printLog(LogTopics.LOG_TOPIC_INIT, "Creating bot...");
+			this.telegramBot = new TelegramBotComm(telegramBotConfigJson.getString("user_id"), telegramBotConfigJson.getString("token"));
+			this.telegramBot.setListener(this.telegramBotCommListener);
+			
+			if(telegramBotConfigJson.has("group_notification_ids")){
+				
+				JSONArray notifications = telegramBotConfigJson.getJSONArray("group_notification_ids");
+				printLog(LogTopics.LOG_TOPIC_INIT, notifications.length() + " recipients found. Adding...");
+				
+				for (int i=0; i<notifications.length(); i++){
+					
+					this.telegramBot.getAuthorizedUsers().add(notifications.getString(i));
+					printLog(LogTopics.LOG_TOPIC_INIT, "Recipient \""+notifications.getString(i)+"\" added.");
+										
+				}
+												
+			}
+			
+			// start the bot
+			this.telegramBot.start();
+			
+		}
 
 		// Available services probe
 		retrieveServices();
@@ -940,6 +989,9 @@ public class DomoticCore {
 		// close the TCP interface
 		this.tcpInterface.terminate();
 		printLog(LogTopics.LOG_TOPIC_TERM, "TCP interface closed.");
+
+		this.firebaseCloudUploader.terminate();
+		printLog(LogTopics.LOG_TOPIC_INET_OUT, "Firebase cloud upload engine terminated.");
 
 		// if specified, shuts down the video surveillance daemon
 		if (this.hasVideoSurveillance && !this.videoSurveillanceDaemonShutdownCommand.equals("")) {
@@ -1038,6 +1090,11 @@ public class DomoticCore {
 
 			return new RemoteCommand(ReplyPrefix.TORRENT_REMOVED.toString(),
 					encode(removeTorrent(incomingCommand.getBody())), "null");
+
+		case "__delete_torrent":
+
+			return new RemoteCommand(ReplyPrefix.TORRENT_REMOVED.toString(),
+					encode(deleteTorrent(incomingCommand.getBody())), "null");
 
 		case "__add_torrent":
 
@@ -1312,11 +1369,6 @@ public class DomoticCore {
 
 		case "__start_streaming_notification":
 
-			// questo comando � solitamente lanciato dall'host stesso, tramite
-			// comando locale, avvisa che ffmpeg � stato correttamente
-			// lanciato
-			// in background
-
 			// aggiorna il nodo del database Firebase con dati relativi allo
 			// stato dello streaming
 			setCameraLiveBroadcastStatus(incomingCommand.getBody(), "ready");
@@ -1324,9 +1376,6 @@ public class DomoticCore {
 			return null;
 
 		case "__end_streaming_notification":
-
-			// questo comando � solitamente lanciato dall'host stesso, tramite
-			// comando locale, avvisa che ffmpeg � terminato
 
 			// aggiorna il nodo del database Firebase con dati relativi allo
 			// stato dello streaming
@@ -1425,11 +1474,11 @@ public class DomoticCore {
 
 	}
 
+	/**
+	 * Removes, if needed, a command from the queue in Firebase DB Node. Also,
+	 * performs any operation, if needed, after command removal.
+	 */
 	private void removeCommand(String id, final int operationAfterRemoval) {
-		/*
-		 * Removes, if needed, a command from the queue in Firebase DB Node.
-		 * Also, performs any operation, if needed, after command removal.
-		 */
 
 		if (id.startsWith(LOCAL_TCP_PREFIX)) {
 
@@ -1500,12 +1549,12 @@ public class DomoticCore {
 			RemoteCommand reply = getReply(rc);
 
 			if (reply != null) { // a reply has to be sent
-				
+
 				// invia la risposta al dispositivo remoto
 				sendMessageToDevice(reply, rc.getReplyto(), commandID, params);
 
 			} else { // no reply has to be sent 
-				
+
 				// rimuove il comando immediatamente
 				removeCommand(commandID, -1);
 
@@ -1532,8 +1581,8 @@ public class DomoticCore {
 
 			// prepares and prints a log message
 			String sendStatus = "TCP OK.";
-			printLog(LogTopics.LOG_TOPIC_OUTMSG, "to:\'" + device + "\' hdr:\'" + message.getHeader() + "\' bdy:\'"
-					+ message.getBody() + "\' sts:\'" + sendStatus + "\'");
+			printLog(LogTopics.LOG_TOPIC_OUTMSG, "to:\'" + device + "\'; hdr:\'" + message.getHeader() + "\'; bdy: "
+					+ message.getBody().length() + "bytes; sts:\'" + sendStatus + "\'");
 
 			// manages additional parameters, if any
 			boolean disconnect = false;
@@ -1576,8 +1625,8 @@ public class DomoticCore {
 					}
 
 					// stampa un messaggio di log
-					printLog(LogTopics.LOG_TOPIC_OUTMSG, "to:\'" + device + "\' hdr:\'" + message.getHeader()
-							+ "\' bdy:\'" + message.getBody() + "\' sts:\'" + sendStatus + "\'");
+					printLog(LogTopics.LOG_TOPIC_OUTMSG, "to:\'" + device + "\'; hdr:\'" + message.getHeader()
+							+ "\'; bdy: " + message.getBody().length() + "bytes; sts:\'" + sendStatus + "\'");
 
 					removeCommand(idToRemove, -1);
 
@@ -1909,8 +1958,8 @@ public class DomoticCore {
 							break;
 
 						default:
-							printLog(LogTopics.LOG_TOPIC_INIT, "Unknown command \'" + command + "\' at line \'"
-									+ lineIndex + "\'. Please check and try again.");
+							printLogColor(LogUtilities.RED, LogTopics.LOG_TOPIC_INIT, "Unknown command \'" + command
+									+ "\' at line \'" + lineIndex + "\'. Please check and try again.");
 							br.close();
 							return false;
 						}
@@ -1921,8 +1970,8 @@ public class DomoticCore {
 					} else {
 
 						// errore di sintassi
-						printLogColor(LogUtilities.RED, LogTopics.LOG_TOPIC_INIT, "Syntax error, please check line \'" + lineIndex
-								+ "\' in configuration file and try again.");
+						printLogColor(LogUtilities.RED, LogTopics.LOG_TOPIC_INIT, "Syntax error, please check line \'"
+								+ lineIndex + "\' in configuration file and try again.");
 						br.close();
 						return false;
 
@@ -1945,22 +1994,26 @@ public class DomoticCore {
 			}
 
 			if (this.jsonAuthFileLocation == "") {
-				printLogColor(LogUtilities.RED, LogTopics.LOG_TOPIC_INIT, "No JSON auth file location specified. Cannot continue.");
+				printLogColor(LogUtilities.RED, LogTopics.LOG_TOPIC_INIT,
+						"No JSON auth file location specified. Cannot continue.");
 				configurationComplete = false;
 			}
 
 			if (this.firebaseDatabaseURL == "") {
-				printLogColor(LogUtilities.RED, LogTopics.LOG_TOPIC_INIT, "No Firebase database location specified. Cannot continue.");
+				printLogColor(LogUtilities.RED, LogTopics.LOG_TOPIC_INIT,
+						"No Firebase database location specified. Cannot continue.");
 				configurationComplete = false;
 			}
 
 			if (this.storageBucketAddress == "") {
-				printLogColor(LogUtilities.RED, LogTopics.LOG_TOPIC_INIT, "No Firebase storage bucket address specified. Cannot continue.");
+				printLogColor(LogUtilities.RED, LogTopics.LOG_TOPIC_INIT,
+						"No Firebase storage bucket address specified. Cannot continue.");
 				configurationComplete = false;
 			}
 
 			if (this.allowVideoSurveillanceManagement && this.videoSurveillanceServerAddress == "") {
-				printLogColor(LogUtilities.RED, LogTopics.LOG_TOPIC_INIT, "No video surveillance server address specified. Cannot continue.");
+				printLogColor(LogUtilities.RED, LogTopics.LOG_TOPIC_INIT,
+						"No video surveillance server address specified. Cannot continue.");
 				configurationComplete = false;
 			}
 
@@ -2003,7 +2056,7 @@ public class DomoticCore {
 
 					@Override
 					public void onComplete(DatabaseError error, DatabaseReference ref) {
-						printLog(LogTopics.LOG_TOPIC_INIT, "Device static node data set.");
+						printLogColor(LogUtilities.GREEN, LogTopics.LOG_TOPIC_INIT, "Device static node data set.");
 						DomoticCore.this.deviceRegistered = true;
 
 						if (error != null) {
@@ -2029,27 +2082,27 @@ public class DomoticCore {
 					this.youTubeComm.setListener(this.youTubeCommListener);
 
 					// print
-					printLog(LogTopics.LOG_TOPIC_INIT, "YouTube credentials successfully verified.");
+					printLogColor(LogUtilities.GREEN, LogTopics.LOG_TOPIC_INIT,
+							"YouTube credentials successfully verified.");
 
 				} catch (YouTubeNotAuthorizedException e) {
 
 					exceptionLog_REDXTERM(YouTubeComm.class, e);
 
-					printLog(LogTopics.LOG_TOPIC_INIT, "Failed to verify Youtube credentials.");
+					printLogColor(LogUtilities.YELLOW, LogTopics.LOG_TOPIC_INIT,
+							"Failed to verify Youtube credentials.");
+					this.youTubeComm = null;
 				}
 
 			} else {
 
 				this.youTubeComm = null;
 
-				printLog(LogTopics.LOG_TOPIC_INIT,
+				printLogColor(LogUtilities.YELLOW, LogTopics.LOG_TOPIC_INIT,
 						"WARNING! Cannot Youtube credentials. Please make sure \"YouTubeJSONLocation\" and \"YouTubeOAuthFolder\" are specified in the configuration file.");
 			}
 
 			printLog(LogTopics.LOG_TOPIC_INIT, "Starting videocameras node data set on Firebase Database.");
-
-			// initializes the upload slots
-			this.frameUploadReady = new ArrayList<String>();
 
 			String[] threadIDs = this.motionComm.getThreadsIDs();
 			int nOfThreads = threadIDs.length;
@@ -2086,8 +2139,6 @@ public class DomoticCore {
 				// broadcast
 				cameraInfo.put("LiveStreamingBroadcastData", "");
 
-				printLog(LogTopics.LOG_TOPIC_INIT, getDatabaseNode(DatabaseNodes.VIDEOCAMERAS));
-
 				FirebaseDatabase.getInstance().getReference(getDatabaseNode(DatabaseNodes.VIDEOCAMERAS))
 						.child(getVideoCameraFullID(cameraID)).setValue(cameraInfo, new CompletionListener() {
 
@@ -2096,7 +2147,7 @@ public class DomoticCore {
 
 								if (error == null) {
 									DomoticCore.this.videoSurveillanceRegistered++;
-									printLog(LogTopics.LOG_TOPIC_INIT, String
+									printLogColor(LogUtilities.GREEN, LogTopics.LOG_TOPIC_INIT, String
 											.format("Videocamera node ID %s set on Firebase Database.", cameraID));
 								} else {
 									firebaseErrorLog_XTERM(error);
@@ -2130,7 +2181,7 @@ public class DomoticCore {
 
 			}
 
-			printLog(LogTopics.LOG_TOPIC_INIT, "Device registration successfully completed.");
+			printLogColor(LogUtilities.GREEN, LogTopics.LOG_TOPIC_INIT, "Device registration successfully completed.");
 
 		}
 
@@ -2266,7 +2317,8 @@ public class DomoticCore {
 				public void onComplete(DatabaseError error, DatabaseReference ref) {
 
 					if (error != null) {
-						printLog(LogTopics.LOG_TOPIC_CMDEXEC,
+						firebaseErrorLog_XTERM(error);
+						printLogColor(LogUtilities.RED, LogTopics.LOG_TOPIC_CMDEXEC,
 								"Upload of file \'" + fileName + "' as dataslot terminated with error. Error code: \'"
 										+ error.getCode() + "\', error message: \'" + error.getMessage() + "\'");
 
@@ -2276,7 +2328,7 @@ public class DomoticCore {
 								new RemoteCommand(ReplyPrefix.FILE_READY_FOR_DOWNLOAD, childTimeStamp, null),
 								deviceToReply, null);
 
-						printLog(LogTopics.LOG_TOPIC_CMDEXEC,
+						printLogColor(LogUtilities.GREEN, LogTopics.LOG_TOPIC_CMDEXEC,
 								"Upload of file \'" + fileName + "' as dataslot successfully terminated.");
 
 					}
@@ -2293,10 +2345,7 @@ public class DomoticCore {
 
 	}
 
-	/*
-	 * SSH Shell related methods and functions
-	 * 
-	 */
+	// SSH Shell related methods and functions
 
 	private void initializeSSHShell(final String remoteDev) {
 
@@ -2307,7 +2356,7 @@ public class DomoticCore {
 
 			@Override
 			public void onConnected() {
-				printLog(LogTopics.LOG_TOPIC_CMDEXEC,
+				printLogColor(LogUtilities.GREEN, LogTopics.LOG_TOPIC_CMDEXEC,
 						"Successfully connected secure shell session with device \'" + remoteDev + "\'");
 
 				sendMessageToDevice(new RemoteCommand(ReplyPrefix.SSH_SHELL_READY, remoteDev, "null"), remoteDev, null);
@@ -2379,20 +2428,20 @@ public class DomoticCore {
 
 		if (!MotionComm.isMotionInstalled()) {
 
-			printLog(LogTopics.LOG_TOPIC_WARNING,
+			printLogColor(LogUtilities.YELLOW, LogTopics.LOG_TOPIC_VSURV,
 					"\'motion\' is not installed on this host.You may install \'motion\' by typing \'sudo apt-get install motion\'Videosurveillance features are disabled on this host.");
 			return false;
 		}
 
 		this.motionComm = new MotionComm(this.videoSurveillanceServerAddress, this.deviceName,
 				this.videoSurveillanceServerControlPort);
-		this.motionComm.setDebugMode(true);
+		this.motionComm.setDebugMode(this.debugMode);
 
 		this.motionComm.setListener(this.motionCommListener);
 
 		if (this.motionComm.isHTMLOutputEnabled()) {
 
-			printLog(LogTopics.LOG_TOPIC_WARNING,
+			printLogColor(LogUtilities.YELLOW, LogTopics.LOG_TOPIC_VSURV,
 					"\'motion\' is installed on this host, but output in HTML format is enabled. For the domotic-motion interface to run properly, motion output has to be in plain format. You may enable the plain output by setting \'webcontrol_html_output off\' in your motion configuration file.\nVideosurveillance features are disabled on this host.");
 			this.motionComm.setListener(null);
 			this.motionComm = null;
@@ -2401,18 +2450,20 @@ public class DomoticCore {
 		}
 
 		int nOfThreads = this.motionComm.getNOfThreads();
-		// System.out.println(nOfThreads);
+
 		if (nOfThreads < 1) {
 
-			printLog(LogTopics.LOG_TOPIC_WARNING, "No active threads found on motion daemon.");
+			printLogColor(LogUtilities.YELLOW, LogTopics.LOG_TOPIC_VSURV, "No active threads found on motion daemon.");
 			this.motionComm.setListener(null);
 			this.motionComm = null;
 			return false;
 
 		} else {
 
-			printLog(LogTopics.LOG_TOPIC_INIT, String.format("%d active threads found on motion daemon.", nOfThreads));
+			printLogColor(LogUtilities.GREEN, LogTopics.LOG_TOPIC_VSURV,
+					String.format("%d active threads found on motion daemon.", nOfThreads));
 			return true;
+
 		}
 
 	}
@@ -2460,33 +2511,28 @@ public class DomoticCore {
 		String remoteImagePosition = MOTION_EVENTS_STORAGE_CLOUD_URL.replaceAll("%%group_name&&", this.groupName)
 				.replaceAll("%%file_name&&", eventThumbnailID);
 
-		// retrieve the picture of the event, as provided by motion daemon, as
-		// byte array, compressed and string encoded
-		String eventPictureData = Base64.encodeBase64String(
-				compress(getFileAsBytes(getEventJpegFileName(paramsMap.get("file_path").toString()))));
-
 		// print log entry
 		printLog(LogTopics.LOG_TOPIC_VSURV,
 				String.format("Starting upload of video file for motion event on bucket: \"%s\"", remoteVideoPosition));
 
-		// set up the FirebaseCloudUploader and start the upload operation
-		FirebaseCloudUploader uploader = new FirebaseCloudUploader(localVideoFilePath, remoteVideoPosition)
-				.setListener(new FirebaseCloudUploaderListener() {
+		// start the upload operation
+		this.firebaseCloudUploader.addToQueue(localVideoFilePath, remoteVideoPosition,
+				new FirebaseUploadItemListener() {
 
 					@Override
-					public void onError(FirebaseCloudUploader uploader, Exception e) {
+					public void onError(Exception e) {
 
 						exceptionLog_REDXTERM(this.getClass(), e);
 
 					}
 
 					@Override
-					public void onComplete(FirebaseCloudUploader uploader, Blob info, String shortFileName) {
+					public void onComplete(Blob info, String uploadID) {
 
 						// upload of the video file completed
 
 						// print log entry
-						printLog(LogTopics.LOG_TOPIC_VSURV,
+						printLogColor(LogUtilities.GREEN, LogTopics.LOG_TOPIC_VSURV,
 								"Video file for motion event successfully uploaded (" + info.getSize() + " bytes).");
 
 						// generate the HashMap to be put into the Firebase Database Events Node
@@ -2538,13 +2584,13 @@ public class DomoticCore {
 
 											}
 
-											printLog(LogTopics.LOG_TOPIC_VSURV,
+											printLogColor(LogUtilities.GREEN, LogTopics.LOG_TOPIC_VSURV,
 													"Data for motion event successfully uploaded. Notification sent - "
 															+ notificationID);
 
 										} else {
 
-											printLog(LogTopics.LOG_TOPIC_ERROR, String.format(
+											printLogColor(LogUtilities.RED, LogTopics.LOG_TOPIC_VSURV, String.format(
 													"Error during motion event data upload: %s", error.getMessage()));
 
 										}
@@ -2555,27 +2601,28 @@ public class DomoticCore {
 
 					}
 
-				}).startUpload();
+				});
 
 		// set up the FirebaseCloudUploader and start the upload operation
-		uploader = new FirebaseCloudUploader(localImageFilePath, remoteImagePosition)
-				.setListener(new FirebaseCloudUploaderListener() {
+		this.firebaseCloudUploader.addToQueue(localImageFilePath, remoteImagePosition,
+				new FirebaseUploadItemListener() {
 
 					@Override
-					public void onError(FirebaseCloudUploader uploader, Exception e) {
+					public void onError(Exception e) {
 						exceptionLog_REDXTERM(this.getClass(), e);
 
 					}
 
 					@Override
-					public void onComplete(FirebaseCloudUploader uploader, Blob info, String fileShortName) {
+					public void onComplete(Blob info, String uploadID) {
 						// print log entry
-						printLog(LogTopics.LOG_TOPIC_VSURV, "Thumbnail file for motion event successfully uploaded ("
-								+ info.getSize() + " bytes).");
+						printLogColor(LogUtilities.GREEN, LogTopics.LOG_TOPIC_VSURV,
+								"Thumbnail file for motion event successfully uploaded (" + info.getSize()
+										+ " bytes).");
 
 					}
 
-				}).startUpload();
+				});
 
 	}
 

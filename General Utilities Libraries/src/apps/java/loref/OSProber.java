@@ -9,7 +9,7 @@ public class OSProber {
 	}
 	
 	public OSType getOperatingSystem() {
-		System.getProperties().
+		return null;
 	}
 	
 

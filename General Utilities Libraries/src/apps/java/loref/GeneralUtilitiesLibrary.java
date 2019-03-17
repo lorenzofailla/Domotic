@@ -54,9 +54,9 @@ import java.util.zip.Inflater;
 import org.json.JSONObject;
 
 import com.google.api.client.util.Base64;
+import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
-import com.google.firebase.auth.FirebaseCredentials;
 
 import static apps.java.loref.LogUtilities.exceptionLog_REDXTERM;
 
@@ -255,7 +255,7 @@ public class GeneralUtilitiesLibrary {
 		try {
 			FileInputStream serviceAccount = new FileInputStream(jsonAuthFileLocation);
 			FirebaseOptions options = new FirebaseOptions.Builder()
-					.setCredential(FirebaseCredentials.fromCertificate(serviceAccount)).setDatabaseUrl(databaseURL)
+					.setCredentials(GoogleCredentials.fromStream(serviceAccount)).setDatabaseUrl(databaseURL)
 					.build();
 
 			FirebaseApp.initializeApp(options);
