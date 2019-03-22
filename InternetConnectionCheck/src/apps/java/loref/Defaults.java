@@ -32,7 +32,7 @@ package apps.java.loref;
 
 public class Defaults {
     
-    public static final String CONNECTIVITY_SERVER = "http://www.google.com";
+    public static final String CONNECTIVITY_SERVER = "google.com";
     public static final long CONNECTIVITY_CHECK_RATE = 10000L;
 
 }

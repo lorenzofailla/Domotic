@@ -422,14 +422,17 @@ public class DomoticCore {
 		@Override
 		public void onRegistrationFailure() {
 			DomoticCore.this.telegramBotActive = false;
+			printLogColor(LogUtilities.YELLOW, LogTopics.LOG_TOPIC_INIT, "Error encountered during Telegram bot registration.");
 			
 		}
 		
 		@Override
 		public void onBotRegisterationSuccess() {
 			DomoticCore.this.telegramBotActive = true;
+			printLogColor(LogUtilities.GREEN, LogTopics.LOG_TOPIC_INIT, "Telegram bot registered.");
 			
 		}
+		
 	};
 	
 	
@@ -934,6 +937,8 @@ public class DomoticCore {
 			}
 			
 			// start the bot
+			printLog(LogTopics.LOG_TOPIC_INIT, "Starting Telegram bot...");
+			
 			this.telegramBot.start();
 			
 		}

@@ -11,4 +11,6 @@ public interface TelegramBotCommListener {
 	public void onBotRegisterationSuccess();
 	public void onRegistrationFailure();
 	
+	public void onMessageReceived(String chatID, String content);
+	
 }

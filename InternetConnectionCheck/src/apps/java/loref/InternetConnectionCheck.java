@@ -67,10 +67,10 @@ public class InternetConnectionCheck {
 	}
 
 	private boolean connectionAvailable;
-	private boolean connectionStatus;
+	private boolean connectionAvailableFlag;
 
 	public boolean getConnectionAvailable() {
-		return this.connectionStatus;
+		return this.connectionAvailableFlag;
 	}
 
 	private InternetConnectionStatusListener listener;
@@ -95,7 +95,7 @@ public class InternetConnectionCheck {
 
 			InternetConnectionCheck.this.connectionAvailable = !checkInetConnection(
 					InternetConnectionCheck.this.connectivityTestServerAddress);
-			InternetConnectionCheck.this.connectionStatus = !(InternetConnectionCheck.this.connectionAvailable);
+			InternetConnectionCheck.this.connectionAvailableFlag = !(InternetConnectionCheck.this.connectionAvailable);
 
 			while (InternetConnectionCheck.this.mainThreadActivity && (InternetConnectionCheck.this.listener != null)) {
 
@@ -118,7 +118,7 @@ public class InternetConnectionCheck {
 					}
 					
 					InternetConnectionCheck.this.connectionAvailable = connectionStatus;
-					InternetConnectionCheck.this.connectionStatus = InternetConnectionCheck.this.connectionAvailable;
+					InternetConnectionCheck.this.connectionAvailableFlag = InternetConnectionCheck.this.connectionAvailable;
 				}
 
 				sleepSafe(InternetConnectionCheck.this.connectivityCheckRate);
