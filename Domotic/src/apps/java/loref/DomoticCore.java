@@ -185,8 +185,7 @@ public class DomoticCore {
 
 			printLog(LogTopics.LOG_TOPIC_FIREBASE_DB, "Firebase services available.");
 
-			this.incomingCommands = FirebaseDatabase.getInstance()
-					.getReference(getDatabaseNode(DatabaseNodes.COMMANDS_INCOMING_TOME));
+			this.incomingCommands = getDBReference(DatabaseNodes.COMMANDS_INCOMING_TOME);
 
 			// register the device
 			registerDeviceServices();
@@ -301,6 +300,9 @@ public class DomoticCore {
 			printLog(LogTopics.LOG_TOPIC_INET_OUT, "Firebase app: " + appName + " deleted.");
 
 		}
+		
+		// sets the availability of the Telegram Bot
+		DomoticCore.this.telegramBotActive = false;
 
 	}
 
@@ -340,7 +342,7 @@ public class DomoticCore {
 
 	}
 
-	// <<<< * Periodical update of device NETWORK STATUS
+	// ----- ---- --- -- - Network status periodical update - -- --- ---- -----
 
 	private long deviceNetworkStatusUpdateRate = DefaultConfigValues.DEVICE_NETWORK_STATUS_UPDATE_RATE;
 
@@ -369,12 +371,12 @@ public class DomoticCore {
 
 	}
 
-	// <<<< * Periodical update of videocamera frame
+	// ----- ---- --- -- - Videocameras frames update - -- --- ---- -----
 
 	private long videocamerasShotUpdateRate = DefaultConfigValues.VIDEOCAMERA_SHOT_UPDATE_RATE;
 
 	private Timer videocamerasShotUpdateTimer;
-
+	
 	private class VideocamerasShotUpdateTask extends TimerTask {
 
 		@Override
@@ -413,29 +415,109 @@ public class DomoticCore {
 	}
 
 	// ----- ---- --- -- - Telegram bot - -- --- ---- -----
-	
+
 	private TelegramBotComm telegramBot = null;
 	private boolean telegramBotActive = false;
 	
 	private TelegramBotCommListener telegramBotCommListener = new TelegramBotCommListener() {
-		
+
+		TelegramBotComm botInterface = DomoticCore.this.telegramBot;
+
 		@Override
 		public void onRegistrationFailure() {
-			DomoticCore.this.telegramBotActive = false;
-			printLogColor(LogUtilities.YELLOW, LogTopics.LOG_TOPIC_INIT, "Error encountered during Telegram bot registration.");
 			
+			printLogColor(LogUtilities.YELLOW, LogTopics.LOG_TOPIC_INIT,
+					"Error encountered during Telegram bot registration.");
+
+			this.botInterface.detachListener();
+			this.botInterface = null;
+			DomoticCore.this.telegramBotActive = false;
 		}
-		
+
 		@Override
 		public void onBotRegisterationSuccess() {
+
 			DomoticCore.this.telegramBotActive = true;
 			printLogColor(LogUtilities.GREEN, LogTopics.LOG_TOPIC_INIT, "Telegram bot registered.");
-			
+
+			// sends a welcome message
+			DomoticCore.this.telegramBot.dispatchMessageToAll("Welcome message.");
+
 		}
+
+		@Override
+		public void onMessageReceived(boolean isAuthenticated, long chatID, int userID, String content) {
+
+			String color;
+			String topic;
+			if(isAuthenticated){
+				color = LogUtilities.GREEN;
+				topic = LogTopics.LOG_TOPIC_AUTHENTICATED_TELEGRAM_MESSAGE_IN;
+			} else {
+				color = LogUtilities.YELLOW;
+				topic = LogTopics.LOG_TOPIC_NONAUTHENTICATED_TELEGRAM_MESSAGE_IN;
+			}
+			
+			printLogColor(color, topic, String.format("chat id='%s'; user id='%s'; content='%s'", chatID, userID, content));
 		
+		}
+
+		@Override
+		public void onQueryCallBackReceived(boolean isAuthenticated, long chatID, int messageID, int userID,
+				String callBackData) {
+			// TODO Auto-generated method stub.
+
+		}
+
 	};
-	
-	
+
+	private void initTelegramBot() {
+
+		JSONObject telegramBotConfigJson = new JSONObject(
+				readPlainTextFromFile(new File(TELEFGRAM_CONFIG_FILE_LOCATION)));
+		if (telegramBotConfigJson.has("user_id") && telegramBotConfigJson.has("token")) { // inizializza la classe del bot Telegram
+
+			printLog(LogTopics.LOG_TOPIC_INIT, "Creating bot...");
+			this.telegramBot = new TelegramBotComm(telegramBotConfigJson.getString("user_id"),
+					telegramBotConfigJson.getString("token"));
+			this.telegramBot.attachListener(this.telegramBotCommListener);
+
+			if (telegramBotConfigJson.has("group_notification_ids")) {
+
+				JSONArray notifications = telegramBotConfigJson.getJSONArray("group_notification_ids");
+				printLog(LogTopics.LOG_TOPIC_INIT, notifications.length() + " recipients found. Adding...");
+
+				for (int i = 0; i < notifications.length(); i++) {
+
+					this.telegramBot.getRecipientsList().add(notifications.getString(i));
+					printLog(LogTopics.LOG_TOPIC_INIT, "Recipient \"" + notifications.getString(i) + "\" added.");
+
+				}
+
+			}
+			
+			if (telegramBotConfigJson.has("authorized_users_ids")) {
+
+				JSONArray authorized = telegramBotConfigJson.getJSONArray("authorized_users_ids");
+				printLog(LogTopics.LOG_TOPIC_INIT, authorized.length() + " authorized users found. Adding...");
+
+				for (int i = 0; i < authorized.length(); i++) {
+
+					this.telegramBot.getAuthorizedUsers().add(authorized.getString(i));
+					printLog(LogTopics.LOG_TOPIC_INIT, "Authorized user id \"" + authorized.getString(i) + "\" added.");
+
+				}
+
+			}
+
+			// start the bot
+			printLog(LogTopics.LOG_TOPIC_INIT, "Starting Telegram bot...");
+			this.telegramBot.start();
+
+		}
+
+	}
+
 	// ----- ---- --- -- - VPN connection - -- --- ---- -----
 
 	private String vpnConnectionConfigFilePath = null;
@@ -524,6 +606,7 @@ public class DomoticCore {
 		@Override
 		public void onConnectionRestored(long inactivityTime) {
 
+			// prints a log message
 			printLog(LogTopics.LOG_TOPIC_INET_IN,
 					"Internet connectivity available after " + inactivityTime / 1000 + " seconds.");
 
@@ -532,12 +615,27 @@ public class DomoticCore {
 
 			// resume the Firebase Uploader
 			DomoticCore.this.firebaseCloudUploader.resume();
-			printLog(LogTopics.LOG_TOPIC_INET_OUT, "Firebase cloud upload engine resumed.");
-			
-			// dispatch a notification on all the Telegram recipients
-			DomoticCore.this.telegramBot.dispatchMessageToAll("I am back online after " + inactivityTime / 1000 + " seconds of unavailable connectivity.");
+			printLog(LogTopics.LOG_TOPIC_INET_IN, "Firebase cloud upload engine resumed.");
 
 			setFirebaseServicesEnabled(connectToFirebaseApp());
+
+			// Initialize the Telegram bot, if not already done
+			if (DomoticCore.this.telegramBot == null) { // there is no Telegram bot existing
+
+				// Initializes the telegram bot.
+
+				printLog(LogTopics.LOG_TOPIC_INIT, "Initializing Telegram bot...");
+				initTelegramBot();
+
+			} else { // Telegram bot already exists
+
+				DomoticCore.this.telegramBotActive = true;
+				
+				// dispatch a notification on all the Telegram recipients
+				DomoticCore.this.telegramBot.dispatchMessageToAll(
+						"I am back online after " + inactivityTime / 1000 + " seconds of unavailable connectivity.");
+
+			}
 
 		}
 
@@ -664,9 +762,7 @@ public class DomoticCore {
 					String.format("Frame image received. Camera ID: %s; Image bytes: %d; Destination: %s", cameraID,
 							frameImageData.length, destination));
 
-			if (destination.startsWith("tcp://")) {
-
-				// Sends the received camera data as a TCP REPLY
+			if (destination.startsWith("tcp://")) { // Sends the received camera data as a TCP REPLY
 
 				RemoteCommand remoteCommand = new RemoteCommand(ReplyPrefix.FRAME_IMAGE_DATA, encode(
 						String.format("%s|data=%s", cameraID, Base64.encodeBase64String(compress(frameImageData)))),
@@ -674,6 +770,22 @@ public class DomoticCore {
 
 				sendMessageToDevice(remoteCommand, destination, "");
 
+			} else if (destination.startsWith("tgm://")) { // Sends the received camera data in a message on the TelegramBot
+				
+				// If telegram Bot is active, sends the image to the bot
+				
+				if(DomoticCore.this.telegramBotActive){
+					
+					printLog(LogTopics.LOG_TOPIC_VSURV, "Image dispatch to Telegram BOT users started.");
+					DomoticCore.this.telegramBot.dispatchImageBytesToAll("There is a new frame from " + DomoticCore.this.motionComm.getCameraName(cameraID) + " !", frameImageData);
+					printLog(LogTopics.LOG_TOPIC_VSURV, "Image dispatch to Telegram BOT users completed.");
+				
+				} else {
+					
+					printLog(LogTopics.LOG_TOPIC_VSURV, "Image dispatch to Telegram BOT users skipped.");
+				
+				}
+				
 			}
 
 			// By default, stores the the received camera data into the relevant Firebase Database node.
@@ -737,13 +849,15 @@ public class DomoticCore {
 							}
 
 						});
+				
+				
 
 			} else { // upload slot for this camera ID is busy
 
 				printLog(LogTopics.LOG_TOPIC_VSURV, String.format("Frame skipped."));
 
 			}
-
+				
 		}
 
 		@Override
@@ -911,46 +1025,15 @@ public class DomoticCore {
 
 		this.tcpInterface.setListener(this.tcpInterfaceListener);
 		this.tcpInterface.init();
-		
-		// Initialize the Telegram bot
-		printLog(LogTopics.LOG_TOPIC_INIT, "Initializing Telegram bot...");
-		
-		JSONObject telegramBotConfigJson = new JSONObject(readPlainTextFromFile(new File(TELEFGRAM_CONFIG_FILE_LOCATION)));
-		if (telegramBotConfigJson.has("user_id") && telegramBotConfigJson.has("token")){ // inizializza la classe del bot Telegram
-			
-			printLog(LogTopics.LOG_TOPIC_INIT, "Creating bot...");
-			this.telegramBot = new TelegramBotComm(telegramBotConfigJson.getString("user_id"), telegramBotConfigJson.getString("token"));
-			this.telegramBot.setListener(this.telegramBotCommListener);
-			
-			if(telegramBotConfigJson.has("group_notification_ids")){
-				
-				JSONArray notifications = telegramBotConfigJson.getJSONArray("group_notification_ids");
-				printLog(LogTopics.LOG_TOPIC_INIT, notifications.length() + " recipients found. Adding...");
-				
-				for (int i=0; i<notifications.length(); i++){
-					
-					this.telegramBot.getAuthorizedUsers().add(notifications.getString(i));
-					printLog(LogTopics.LOG_TOPIC_INIT, "Recipient \""+notifications.getString(i)+"\" added.");
-										
-				}
-												
-			}
-			
-			// start the bot
-			printLog(LogTopics.LOG_TOPIC_INIT, "Starting Telegram bot...");
-			
-			this.telegramBot.start();
-			
-		}
 
 		// Available services probe
 		retrieveServices();
+
 		printLog(LogTopics.LOG_TOPIC_INIT, "Available services probing completed.");
 
 		// initializes and starts the Internet connectivity check loop
-		this.internetConnectionCheck = new InternetConnectionCheck(
-				DefaultConfigValues.CONNECTIVITY_TEST_SERVER_ADDRESS);
-		this.internetConnectionCheck.setConnectivityCheckRate(DefaultConfigValues.CONNECTIVITY_TEST_RATE);
+		this.internetConnectionCheck = new InternetConnectionCheck(this.internetConnectionCheckServer);
+		this.internetConnectionCheck.setConnectivityCheckRate(this.internetConnectionCheckRate);
 		this.internetConnectionCheck.setListener(this.internetConnectionStatusListener);
 		this.internetConnectionCheck.start();
 

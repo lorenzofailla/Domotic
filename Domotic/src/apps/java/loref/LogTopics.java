@@ -23,5 +23,9 @@ public class LogTopics {
     public final static String LOG_TOPIC_INET_OUT = "INET_OUT";
     public final static String LOG_TOPIC_INET_IN = "INET_IN";
     
+    public final static String LOG_TOPIC_AUTHENTICATED_TELEGRAM_MESSAGE_IN = "AUTH_TGM";
+    public final static String LOG_TOPIC_NONAUTHENTICATED_TELEGRAM_MESSAGE_IN = "NOAUTH_TGM";
+    
+    
     
 }

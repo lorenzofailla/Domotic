@@ -6,11 +6,15 @@ package apps.java.loref;
  * @author lore_f.
  *         Created 17 mar 2019.
  */
+@SuppressWarnings("javadoc")
 public interface TelegramBotCommListener {
 	
 	public void onBotRegisterationSuccess();
 	public void onRegistrationFailure();
 	
-	public void onMessageReceived(String chatID, String content);
+	public void onMessageReceived(boolean isAuthenticated, long chatID, int userID, String content);
+	public void onQueryCallBackReceived(boolean isAuthenticated, long chatID, int messageID, int userID, String callBackData);
+	
+	public void onMessageSent(String messageKey, String messageType, String messageID);
 	
 }

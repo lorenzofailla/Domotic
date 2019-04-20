@@ -3,12 +3,12 @@ package apps.java.loref;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.WebhookInfo;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import org.telegram.telegrambots.meta.generics.BotSession;
-
 import static apps.java.loref.LogUtilities.*;
 
 import java.io.ByteArrayInputStream;
@@ -18,6 +18,7 @@ import java.io.ByteArrayInputStream;
  *
  * @author lore_f. Created 16 mar 2019.
  */
+@SuppressWarnings("javadoc")
 public class Bot extends TelegramLongPollingBot {
 
 	private String botUsername;
@@ -29,8 +30,6 @@ public class Bot extends TelegramLongPollingBot {
 		return this;
 	}
 
-	private WebhookInfo webhookInfo = new WebhookInfo();
-
 	public Bot setBotUsername(String botUsername) {
 		this.botUsername = botUsername;
 		return this;
@@ -41,8 +40,9 @@ public class Bot extends TelegramLongPollingBot {
 		return this;
 	}
 
+	@Override
 	public void onUpdateReceived(Update update) {
-
+		
 		if (update.hasMessage()) {
 
 			Message message = update.getMessage();
@@ -50,19 +50,43 @@ public class Bot extends TelegramLongPollingBot {
 			if (message.hasText()) {
 
 				String text = message.getText();
-				String chatID = message.getChatId().toString();
+				long chatID = message.getChatId();
+				int userID = message.getFrom().getId();
+
+				boolean isAuthenticated = this.parent.isEnabled("" + userID);
 
 				if (this.parent.hasListener())
-					this.parent.getListener().onMessageReceived(chatID, text);
+					this.parent.getListener().onMessageReceived(isAuthenticated, chatID, userID, text);
 
 			}
+
+		} else if (update.hasCallbackQuery()) {
+
+			CallbackQuery callbackQuery = update.getCallbackQuery();
+
+			String data = callbackQuery.getData();
+			long chatID = callbackQuery.getMessage().getChatId();
+			int messageID = callbackQuery.getMessage().getMessageId();
+			int userID = callbackQuery.getMessage().getFrom().getId();
+			boolean isAuthenticated = this.parent.isEnabled("" + userID);
+
+			if (this.parent.hasListener())
+				this.parent.getListener().onQueryCallBackReceived(isAuthenticated, chatID, messageID, userID, data);
+
+		} else if (update.hasEditedMessage()) {
+			
+			Message message = update.getEditedMessage();
+			System.out.println("Messaggio " + message.getMessageId() + " modificato.");
+			
 		}
 
 	}
 
+	@Override
 	public String getBotUsername() {
 
 		return this.botUsername;
+		
 	}
 
 	@Override
@@ -71,13 +95,54 @@ public class Bot extends TelegramLongPollingBot {
 		return this.botToken;
 	}
 
-	public void sendMessage(String recipientID, String messageContent) {
+	public String sendMessage(String recipientID, String messageContent) {
 
+		return sendMessage(recipientID, messageContent, null);
+
+	}
+
+	public String sendMessage(String recipientID, String messageContent, InlineKeyboardMarkup keyboard) {
+
+		String result = "";
+		int messageID = -1;
 		SendMessage sendMessage = new SendMessage().setChatId(recipientID).setText(messageContent);
+
+		if (keyboard != null)
+
+			sendMessage.setReplyMarkup(keyboard);
 
 		try {
 
-			execute(sendMessage);
+			messageID = execute(sendMessage).getMessageId();
+			if (messageID != -1)
+				result = recipientID + "_" + messageID;
+
+		} catch (TelegramApiException e) {
+
+			exceptionLog_REDXTERM(Bot.class, e);
+
+		}
+
+		return result;
+
+	}
+
+	public void updateMessage(int messageID, long chatID, String messageContent) {
+
+		updateMessage(messageID, chatID, messageContent, null);
+
+	}
+
+	public void updateMessage(int messageID, long chatID, String messageContent, InlineKeyboardMarkup keyboard) {
+		
+		EditMessageText editMessageText = new EditMessageText().setChatId(chatID).setMessageId(messageID).setText(messageContent);
+				
+		if (keyboard != null)
+			editMessageText.setReplyMarkup(keyboard);
+
+		try {
+			
+			execute(editMessageText);
 
 		} catch (TelegramApiException e) {
 
@@ -86,22 +151,37 @@ public class Bot extends TelegramLongPollingBot {
 		}
 
 	}
+	
+	public String sendImageBytes(String recipientID, String description, byte[] imageContent) {
 
-	public void sendImageBytes(String recipientID, String description, byte[] imageContent) {
+		return sendImageBytes(recipientID, description, imageContent, null);
 
+	}
+
+	public String sendImageBytes(String recipientID, String description, byte[] imageContent, InlineKeyboardMarkup keyboard) {
+		
+		String result = "";
+		int messageID = -1;
+		
 		ByteArrayInputStream inputStream = new ByteArrayInputStream(imageContent);
 
 		SendPhoto sendPhoto = new SendPhoto().setChatId(recipientID).setPhoto(description, inputStream);
-
+		if (keyboard != null)
+			sendPhoto.setReplyMarkup(keyboard);
+				
 		try {
 
-			execute(sendPhoto);
-
+			messageID = execute(sendPhoto).getMessageId();
+			if (messageID != -1)
+				result = recipientID + "_" + messageID;
+			
 		} catch (TelegramApiException e) {
 
 			exceptionLog_REDXTERM(Bot.class, e);
 
 		}
+		
+		return result;
 
 	}
 

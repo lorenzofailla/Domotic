@@ -40,7 +40,7 @@ public class InetCheck {
 	private long availableCountTime=0L;
 
 	public void setListener(InetCheckListener l) {
-		listener = l;
+		this.listener = l;
 	}
 
 	public InetCheck() {
@@ -49,7 +49,7 @@ public class InetCheck {
 
 	public InetCheck(InetCheckListener l) {
 
-		listener = l;
+		this.listener = l;
 
 	}
 
@@ -86,8 +86,8 @@ public class InetCheck {
 
 	public void init() {
 
-		tickTime = shortInterval;
-		mainLoop.start();
+		this.tickTime = this.shortInterval;
+		this.mainLoop.start();
 
 	}
 
@@ -97,42 +97,42 @@ public class InetCheck {
 
 			// registra lo stato precedente, in modo che la prima volta possa
 			// generare una notifica
-			lastInetConnectionStatus = !isReachableByPing(host, timeOut);
+			InetCheck.this.lastInetConnectionStatus = !isReachableByPing(InetCheck.this.host, InetCheck.this.timeOut);
 
-			while (continueLoop) {
+			while (InetCheck.this.continueLoop) {
 
 				// controlla lo stato della connessione internet
-				inetConnectionStatus = isReachableByPing(host, timeOut);
+				InetCheck.this.inetConnectionStatus = isReachableByPing(InetCheck.this.host, InetCheck.this.timeOut);
 
 				// se ci sono le condizioni, notifica lo stato della connessione
 				// tramite il listener
-				if (listener != null && persistentNotification) {
+				if (InetCheck.this.listener != null && InetCheck.this.persistentNotification) {
 
-					listener.onCheck(inetConnectionStatus);
+					InetCheck.this.listener.onCheck(InetCheck.this.inetConnectionStatus);
 
 				}
 				
 				// update the counter of the total time
-				totalCountTime+=tickTime;
+				InetCheck.this.totalCountTime+=InetCheck.this.tickTime;
 
-				if (inetConnectionStatus) {
+				if (InetCheck.this.inetConnectionStatus) {
 
 					// la connessione internet è presente
 
 					// se ci sono le condizioni, notifica la variazione dello
 					// stato della connessione tramite il listener
 
-					if (listener != null && !lastInetConnectionStatus) {
+					if (InetCheck.this.listener != null && !InetCheck.this.lastInetConnectionStatus) {
 
-						listener.onConnectionRestored();
+						InetCheck.this.listener.onConnectionRestored();
 
 					}
 					
 					// update the counter of the available time (assume the connection has been available all the time)
-					availableCountTime+=tickTime;
+					InetCheck.this.availableCountTime+=InetCheck.this.tickTime;
 
 					// imposta il prossimo controllo
-					tickTime = longInterval;
+					InetCheck.this.tickTime = InetCheck.this.longInterval;
 
 				} else {
 
@@ -141,21 +141,21 @@ public class InetCheck {
 					// se ci sono le condizioni, notifica la variazione dello
 					// stato della connessione tramite il listener
 
-					if (listener != null && lastInetConnectionStatus) {
+					if (InetCheck.this.listener != null && InetCheck.this.lastInetConnectionStatus) {
 
-						listener.onConnectionLost();
+						InetCheck.this.listener.onConnectionLost();
 
 					}
 
 					// imposta il prossimo controllo
-					tickTime = shortInterval;
+					InetCheck.this.tickTime = InetCheck.this.shortInterval;
 
 				}
 
 				// registra lo stato della connessione
-				lastInetConnectionStatus = inetConnectionStatus;
+				InetCheck.this.lastInetConnectionStatus = InetCheck.this.inetConnectionStatus;
 
-				sleepSafe(tickTime);
+				sleepSafe(InetCheck.this.tickTime);
 
 			}
 
@@ -164,15 +164,15 @@ public class InetCheck {
 	};
 
 	public boolean getConnectionStatus() {
-		return inetConnectionStatus;
+		return this.inetConnectionStatus;
 	}
 
 	public void terminate() {
-		continueLoop = false;
+		this.continueLoop = false;
 	}
 	
 	public double getAvailabilityPercentage() {
-		return (double) 1.0 * availableCountTime / totalCountTime;
+		return (double) 1.0 * this.availableCountTime / this.totalCountTime;
 	}
 
 	/*
@@ -180,7 +180,7 @@ public class InetCheck {
 	 */
 
 	public String getHost() {
-		return host;
+		return this.host;
 	}
 
 	public void setHost(String host) {
@@ -188,7 +188,7 @@ public class InetCheck {
 	}
 
 	public int getTimeOut() {
-		return timeOut;
+		return this.timeOut;
 	}
 
 	public void setTimeOut(int timeOut) {
@@ -196,7 +196,7 @@ public class InetCheck {
 	}
 
 	public boolean isPersistentNotification() {
-		return persistentNotification;
+		return this.persistentNotification;
 	}
 
 	public void setPersistentNotification(boolean persistentNotification) {
@@ -204,7 +204,7 @@ public class InetCheck {
 	}
 
 	public long getLongInterval() {
-		return longInterval;
+		return this.longInterval;
 	}
 
 	public void setLongInterval(long longInterval) {
@@ -212,7 +212,7 @@ public class InetCheck {
 	}
 
 	public long getShortInterval() {
-		return shortInterval;
+		return this.shortInterval;
 	}
 
 	public void setShortInterval(long shortInterval) {

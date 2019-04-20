@@ -55,7 +55,7 @@ public class DefaultConfigValues {
 
     public final static long FIREBASE_DB_UPDATE_TIMEOUT = 10000L;
 
-    public final static String CONNECTIVITY_TEST_SERVER_ADDRESS = "http://lorenzofailla.000webhostapp.com/domotic/domotic-connection-test.php";
+    public final static String CONNECTIVITY_TEST_SERVER_ADDRESS = "google.com";
     public final static long CONNECTIVITY_TEST_RATE = 10000L;
     
     public static final String HEADER_REPLY = "@REPLY";
