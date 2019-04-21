@@ -252,7 +252,21 @@ public class TelegramBotComm {
 		
 	}
 	
-	public void terminateSession(){
+	public void terminateSession(boolean waitForQueue){
+		
+		if(waitForQueue){
+			
+			while (getQueueLength()>0){
+				
+				if(this.debugMode)
+					debugLog_GRAYXTERM(this.getClass(), "Waiting queue to terminate session. Items in queue="
+							+ this.messagesQueue.size() + ".");
+									
+				sleepSafe(Defaults.TICK_TIME);
+			
+			}
+			
+		}
 		
 		pauseSession();
 		this.messagingEngineRunning=false;
@@ -272,8 +286,11 @@ public class TelegramBotComm {
 	}
 	
 	public void send(TelegramBotTextMessage message){
+				
+		if(this.debugMode)
+			debugLog_GRAYXTERM(this.getClass(), "Message \""+ message.getKey() +"\" added to queue.");
 		
-		this.messagesQueue.put(message.getRecipientID() + "_" + System.currentTimeMillis(), message);
+		this.messagesQueue.put(message.getKey(), message);
 		
 	}
 	
