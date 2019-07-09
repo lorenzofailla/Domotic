@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/Domotic.iml" filepath="$PROJECT_DIR$/Domotic.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../FirebaseCloudUploader/FirebaseCloudUploader.iml" filepath="$PROJECT_DIR$/../FirebaseCloudUploader/FirebaseCloudUploader.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../General Utilities Libraries/General Utilities Libraries.iml" filepath="$PROJECT_DIR$/../General Utilities Libraries/General Utilities Libraries.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../InternetConnectionCheck/InternetConnectionCheck.iml" filepath="$PROJECT_DIR$/../InternetConnectionCheck/InternetConnectionCheck.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../MotionComm/MotionComm.iml" filepath="$PROJECT_DIR$/../MotionComm/MotionComm.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../SocketResponder/SocketResponder.iml" filepath="$PROJECT_DIR$/../SocketResponder/SocketResponder.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../TelegramBotComm/TelegramBotComm.iml" filepath="$PROJECT_DIR$/../TelegramBotComm/TelegramBotComm.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../YouTubeComm/YouTubeComm.iml" filepath="$PROJECT_DIR$/../YouTubeComm/YouTubeComm.iml" />
+    </modules>
+  </component>
+</project>

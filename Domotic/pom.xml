@@ -41,6 +41,12 @@
 			<artifactId>jipcam</artifactId>
 			<version>0.9.1</version>
 		</dependency>
+		
+		<dependency>
+			<groupId>org.telegram</groupId>
+			<artifactId>telegrambots</artifactId>
+			<version>4.1.2</version>
+		</dependency>
 
 	</dependencies>
 	

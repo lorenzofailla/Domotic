@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="Domotic" />
+        <module name="YouTubeComm" />
+        <module name="TelegramBotComm" />
+        <module name="General Utilities Libraries" />
+        <module name="FirebaseCloudUploader" />
+        <module name="MotionComm" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="Domotic" target="1.8" />
+      <module name="FirebaseCloudUploader" target="1.8" />
+      <module name="General Utilities Libraries" target="1.8" />
+      <module name="MotionComm" target="1.8" />
+      <module name="TelegramBotComm" target="6" />
+      <module name="YouTubeComm" target="1.8" />
+    </bytecodeTargetLevel>
+  </component>
+</project>

@@ -32,6 +32,7 @@ package apps.java.loref;
 
 import static apps.java.loref.GeneralUtilitiesLibrary.parseShellCommand;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -214,6 +215,33 @@ public class GeneralUtilitiesLibrary {
 
 			exceptionLog_REDXTERM(GeneralUtilitiesLibrary.class, e);
 			return "ERROR: File not readable";
+		}
+
+	}
+	
+	public static String readPlainTextFromStream(InputStream inputStream) {
+
+		BufferedInputStream in = new BufferedInputStream(inputStream);
+
+		try {
+
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+			int data;
+			while ((data = in.read()) != -1) {
+
+				out.write(data);
+			}
+
+			out.flush();
+			in.close();
+
+			return out.toString();
+
+		} catch (IOException e) {
+
+			exceptionLog_REDXTERM(GeneralUtilitiesLibrary.class, e);
+			return "ERROR: Stream not readable";
 		}
 
 	}

@@ -13,6 +13,7 @@ Root
 		$GroupName
 			$VideoCameraID
 				LastShotData
+				Status
 				?
 				?
 	MotionEvents

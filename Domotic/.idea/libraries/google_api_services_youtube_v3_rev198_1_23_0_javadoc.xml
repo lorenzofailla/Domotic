@@ -1,0 +1,15 @@
+<component name="libraryTable">
+  <library name="google-api-services-youtube-v3-rev198-1.23.0-javadoc">
+    <CLASSES>
+      <root url="file://$USER_HOME$/java_lib/google-api-services-youtube-v3-rev198-java-1.23.0/youtube" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/java_lib/google-api-services-youtube-v3-rev198-java-1.23.0/youtube/google-api-services-youtube-v3-rev198-1.23.0-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="file://$USER_HOME$/java_lib/google-api-services-youtube-v3-rev198-java-1.23.0/youtube" />
+    </SOURCES>
+    <jarDirectory url="file://$USER_HOME$/java_lib/google-api-services-youtube-v3-rev198-java-1.23.0/youtube" recursive="false" />
+    <jarDirectory url="file://$USER_HOME$/java_lib/google-api-services-youtube-v3-rev198-java-1.23.0/youtube" recursive="false" type="SOURCES" />
+  </library>
+</component>

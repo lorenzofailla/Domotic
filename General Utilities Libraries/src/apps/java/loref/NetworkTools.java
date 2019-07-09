@@ -2,9 +2,6 @@ package apps.java.loref;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.net.UnknownHostException;
 
 @SuppressWarnings("javadoc")

@@ -1,0 +1,615 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ArtifactsWorkspaceSettings">
+    <artifacts-to-build>
+      <artifact name="Domotic:jar" />
+    </artifacts-to-build>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="e26bf237-bd3b-47c6-a5b0-c5ea287232c9" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/artifacts/Domotic_jar.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__aopalliance_aopalliance_1_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_fasterxml_jackson_core_jackson_annotations_2_9_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_fasterxml_jackson_core_jackson_core_2_1_3.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_fasterxml_jackson_core_jackson_core_2_9_8.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_fasterxml_jackson_core_jackson_databind_2_9_8.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_fasterxml_jackson_jaxrs_jackson_jaxrs_base_2_9_8.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_fasterxml_jackson_jaxrs_jackson_jaxrs_json_provider_2_9_8.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_fasterxml_jackson_module_jackson_module_jaxb_annotations_2_9_8.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_api_api_common_1_2_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_api_client_google_api_client_1_18_0_rc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_api_client_google_api_client_1_23_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_api_client_google_api_client_gson_1_23_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_api_gax_1_23_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_api_gax_grpc_1_23_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_api_gax_httpjson_0_40_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_api_grpc_proto_google_cloud_firestore_v1beta1_0_10_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_api_grpc_proto_google_common_protos_1_9_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_api_grpc_proto_google_iam_v1_0_10_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_apis_google_api_services_storage_v1_rev114_1_23_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_apis_google_api_services_youtube_v3_rev202_1_18_0_rc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_auth_google_auth_library_credentials_0_8_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_auth_google_auth_library_oauth2_http_0_8_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_auto_value_auto_value_1_4.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_cloud_google_cloud_core_1_27_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_cloud_google_cloud_core_grpc_1_27_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_cloud_google_cloud_core_http_1_27_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_cloud_google_cloud_firestore_0_45_0_beta.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_cloud_google_cloud_storage_1_27_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_code_findbugs_jsr305_1_3_7.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_code_findbugs_jsr305_1_3_9.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_code_findbugs_jsr305_3_0_2.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_code_gson_gson_2_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_errorprone_error_prone_annotations_2_1_3.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_errorprone_error_prone_annotations_2_2_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_firebase_firebase_admin_6_4_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_gdata_core_1_47_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_guava_guava_13_0_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_guava_guava_20_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_guava_guava_25_1_android.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_http_client_google_http_client_1_20_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_http_client_google_http_client_1_23_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_http_client_google_http_client_appengine_1_23_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_http_client_google_http_client_gson_1_23_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_http_client_google_http_client_jackson2_1_20_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_http_client_google_http_client_jackson2_1_23_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_http_client_google_http_client_jackson_1_23_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_inject_guice_4_2_2.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_j2objc_j2objc_annotations_1_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_oauth_client_google_oauth_client_1_20_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_oauth_client_google_oauth_client_1_23_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_oauth_client_google_oauth_client_java6_1_20_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_oauth_client_google_oauth_client_jetty_1_20_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_protobuf_protobuf_java_3_5_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_protobuf_protobuf_java_util_3_5_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_grahamedgecombe_jterminal_jterminal_1_0_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_jcraft_jsch_0_1_54.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__commons_cli_commons_cli_1_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__commons_codec_commons_codec_1_2.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__commons_codec_commons_codec_1_3.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__commons_codec_commons_codec_1_9.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__commons_httpclient_commons_httpclient_3_0_rc4.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__commons_io_commons_io_2_5.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__commons_lang_commons_lang_1_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__commons_logging_commons_logging_1_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__commons_logging_commons_logging_1_1_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__commons_logging_commons_logging_1_2.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__io_grpc_grpc_auth_1_10_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__io_grpc_grpc_context_1_10_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__io_grpc_grpc_core_1_10_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__io_grpc_grpc_netty_shaded_1_10_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__io_grpc_grpc_protobuf_1_10_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__io_grpc_grpc_protobuf_lite_1_10_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__io_grpc_grpc_stub_1_10_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__io_netty_netty_buffer_4_1_22_Final.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__io_netty_netty_codec_4_1_22_Final.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__io_netty_netty_codec_http_4_1_22_Final.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__io_netty_netty_common_4_1_22_Final.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__io_netty_netty_handler_4_1_22_Final.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__io_netty_netty_resolver_4_1_22_Final.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__io_netty_netty_transport_4_1_22_Final.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__io_opencensus_opencensus_api_0_11_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__io_opencensus_opencensus_contrib_grpc_metrics_0_11_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__io_opencensus_opencensus_contrib_http_util_0_11_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__javax_activation_activation_1_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__javax_annotation_javax_annotation_api_1_2.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__javax_inject_javax_inject_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__javax_mail_mail_1_4.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__javax_media_jmf_2_1_1e.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__javax_servlet_servlet_api_2_4.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__javax_validation_validation_api_1_1_0_Final.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__javax_ws_rs_javax_ws_rs_api_2_0_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__joda_time_joda_time_2_9_2.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__junit_junit_3_8_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__log4j_log4j_1_2_13.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__net_sf_jipcam_jipcam_0_9_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_apache_httpcomponents_httpclient_4_0_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_apache_httpcomponents_httpclient_4_5_3.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_apache_httpcomponents_httpcore_4_0_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_apache_httpcomponents_httpcore_4_4_6.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_apache_httpcomponents_httpmime_4_5_3.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_checkerframework_checker_compat_qual_2_0_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_codehaus_jackson_jackson_core_asl_1_9_11.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_codehaus_mojo_animal_sniffer_annotations_1_14.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_glassfish_grizzly_grizzly_framework_2_3_28.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_glassfish_grizzly_grizzly_http_2_3_28.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_glassfish_grizzly_grizzly_http_server_2_3_28.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_glassfish_hk2_external_aopalliance_repackaged_2_5_0_b32.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_glassfish_hk2_external_javax_inject_2_5_0_b32.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_glassfish_hk2_hk2_api_2_5_0_b32.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_glassfish_hk2_hk2_locator_2_5_0_b32.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_glassfish_hk2_hk2_utils_2_5_0_b32.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_glassfish_hk2_osgi_resource_locator_1_0_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_glassfish_jersey_bundles_repackaged_jersey_guava_2_25_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_glassfish_jersey_containers_jersey_container_grizzly2_http_2_25_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_glassfish_jersey_core_jersey_client_2_25_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_glassfish_jersey_core_jersey_common_2_25_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_glassfish_jersey_core_jersey_server_2_25_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_glassfish_jersey_ext_jersey_entity_filtering_2_25_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_glassfish_jersey_media_jersey_media_jaxb_2_25_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_glassfish_jersey_media_jersey_media_json_jackson_2_25_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_javassist_javassist_3_20_0_GA.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_json_json_20160810.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_json_json_20180813.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_mortbay_jetty_jetty_6_1_26.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_mortbay_jetty_jetty_util_6_1_26.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_mortbay_jetty_servlet_api_2_5_20081211.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_slf4j_slf4j_api_1_7_25.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_telegram_telegrambots_4_1_2.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_telegram_telegrambots_meta_4_1_2.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_threeten_threetenbp_1_3_3.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/google_api_services_youtube_v3_rev198_1_23_0_javadoc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../FirebaseCloudUploader/FirebaseCloudUploader.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../General Utilities Libraries/General Utilities Libraries.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../InternetConnectionCheck/InternetConnectionCheck.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../MotionComm/MotionComm.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../SocketResponder/SocketResponder.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../TelegramBotComm/TelegramBotComm.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../YouTubeComm/YouTubeComm.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/apps/java/loref/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/apps/java/loref/DefaultConfigValues.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/apps/java/loref/Domotic.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/apps/java/loref/DomoticCore.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/apps/java/loref/ExitCodes.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/apps/java/loref/FileInCloudStorage.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/apps/java/loref/LogEntry.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/apps/java/loref/LogTopics.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/apps/java/loref/ReplyPrefix.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/apps/java/loref/SSHShell.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/apps/java/loref/YouTubeActivation.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/META-INF/maven/Domotic/Domotic/pom.properties" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/META-INF/maven/Domotic/Domotic/pom.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/META-INF/maven/Domotic/Domotic/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/META-INF/maven/Domotic/Domotic/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/DefaultConfigValues.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/Domotic.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/DomoticCore$1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/DomoticCore$10.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/DomoticCore$11.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/DomoticCore$12.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/DomoticCore$13.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/DomoticCore$14.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/DomoticCore$15.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/DomoticCore$16.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/DomoticCore$17.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/DomoticCore$18.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/DomoticCore$19.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/DomoticCore$2$1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/DomoticCore$2.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/DomoticCore$20.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/DomoticCore$21.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/DomoticCore$22$1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/DomoticCore$22.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/DomoticCore$23.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/DomoticCore$3.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/DomoticCore$4.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/DomoticCore$5.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/DomoticCore$6$1$1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/DomoticCore$6$1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/DomoticCore$6.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/DomoticCore$7.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/DomoticCore$8.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/DomoticCore$9.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/DomoticCore$DatabaseNodes.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/DomoticCore$DeviceNetworkStatusUpdateTask.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/DomoticCore$DeviceStatusUpdateTask.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/DomoticCore$FirebaseDBUpdateTimeoutTask.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/DomoticCore$MainLoop.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/DomoticCore$VideocamerasShotUpdateTask.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/DomoticCore.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/ExitCodes.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/FileInCloudStorage.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/LogEntry.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/LogTopics.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/ReplyPrefix.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/SSHShell$1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/SSHShell$InactivityDisconnection.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/SSHShell$SSHShellListener.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/SSHShell.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/apps/java/loref/YouTubeActivation.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../FirebaseCloudUploader/src/apps/java/loref/DataStreamUploadItem.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../FirebaseCloudUploader/src/apps/java/loref/FileUploadItem.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../FirebaseCloudUploader/src/apps/java/loref/FirebaseCloudUploader.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../FirebaseCloudUploader/src/apps/java/loref/FirebaseCloudUploaderListener.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../FirebaseCloudUploader/src/apps/java/loref/FirebaseUploadItemListener.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../FirebaseCloudUploader/src/apps/java/loref/UploadItem.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../FirebaseCloudUploader/target/classes/META-INF/maven/FirebaseCloudUploader/FirebaseCloudUploader/pom.properties" beforeDir="false" afterPath="$PROJECT_DIR$/../FirebaseCloudUploader/target/classes/META-INF/maven/FirebaseCloudUploader/FirebaseCloudUploader/pom.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../FirebaseCloudUploader/target/classes/apps/java/loref/DataStreamUploadItem.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../FirebaseCloudUploader/target/classes/apps/java/loref/FileUploadItem.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../FirebaseCloudUploader/target/classes/apps/java/loref/FirebaseCloudUploader$Mode.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../FirebaseCloudUploader/target/classes/apps/java/loref/FirebaseCloudUploader$UploadEngine.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../FirebaseCloudUploader/target/classes/apps/java/loref/FirebaseCloudUploader.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../FirebaseCloudUploader/target/classes/apps/java/loref/FirebaseCloudUploaderListener.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../FirebaseCloudUploader/target/classes/apps/java/loref/FirebaseUploadItemListener.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../FirebaseCloudUploader/target/classes/apps/java/loref/UploadItem.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../General Utilities Libraries/src/apps/java/loref/GeneralUtilitiesLibrary.java" beforeDir="false" afterPath="$PROJECT_DIR$/../General Utilities Libraries/src/apps/java/loref/GeneralUtilitiesLibrary.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../General Utilities Libraries/src/apps/java/loref/NetworkTools.java" beforeDir="false" afterPath="$PROJECT_DIR$/../General Utilities Libraries/src/apps/java/loref/NetworkTools.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../General Utilities Libraries/target/classes/META-INF/maven/General-Utilities-Library/General-Utilities-Library/pom.properties" beforeDir="false" afterPath="$PROJECT_DIR$/../General Utilities Libraries/target/classes/META-INF/maven/General-Utilities-Library/General-Utilities-Library/pom.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../General Utilities Libraries/target/classes/apps/java/loref/GeneralUtilitiesLibrary.class" beforeDir="false" afterPath="$PROJECT_DIR$/../General Utilities Libraries/target/classes/apps/java/loref/GeneralUtilitiesLibrary.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../General Utilities Libraries/target/classes/apps/java/loref/NetworkTools.class" beforeDir="false" afterPath="$PROJECT_DIR$/../General Utilities Libraries/target/classes/apps/java/loref/NetworkTools.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../InternetConnectionCheck/src/apps/java/loref/InternetConnectionCheck.java" beforeDir="false" afterPath="$PROJECT_DIR$/../InternetConnectionCheck/src/apps/java/loref/InternetConnectionCheck.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../MotionComm/src/apps/java/loref/MotionComm.java" beforeDir="false" afterPath="$PROJECT_DIR$/../MotionComm/src/apps/java/loref/MotionComm.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../MotionComm/target/classes/META-INF/maven/MotionComm/MotionComm/pom.properties" beforeDir="false" afterPath="$PROJECT_DIR$/../MotionComm/target/classes/META-INF/maven/MotionComm/MotionComm/pom.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../MotionComm/target/classes/apps/java/loref/MotionComm$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/../MotionComm/target/classes/apps/java/loref/MotionComm$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../MotionComm/target/classes/apps/java/loref/MotionComm$FrameCapturer$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/../MotionComm/target/classes/apps/java/loref/MotionComm$FrameCapturer$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../MotionComm/target/classes/apps/java/loref/MotionComm$FrameCapturer.class" beforeDir="false" afterPath="$PROJECT_DIR$/../MotionComm/target/classes/apps/java/loref/MotionComm$FrameCapturer.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../MotionComm/target/classes/apps/java/loref/MotionComm$StopMotionEmulation.class" beforeDir="false" afterPath="$PROJECT_DIR$/../MotionComm/target/classes/apps/java/loref/MotionComm$StopMotionEmulation.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../MotionComm/target/classes/apps/java/loref/MotionComm.class" beforeDir="false" afterPath="$PROJECT_DIR$/../MotionComm/target/classes/apps/java/loref/MotionComm.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SocketResponder/bin/apps/java/loref/AuthTimeoutCheckLoop.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SocketResponder/bin/apps/java/loref/ConnectionListenerLoop.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SocketResponder/bin/apps/java/loref/DefaultValues.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SocketResponder/bin/apps/java/loref/InStreamReaderLoop.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SocketResponder/bin/apps/java/loref/InactivityTimeoutCheckLoop.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SocketResponder/bin/apps/java/loref/SocketConnection$1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SocketResponder/bin/apps/java/loref/SocketConnection$Mode.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SocketResponder/bin/apps/java/loref/SocketConnection.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SocketResponder/bin/apps/java/loref/SocketResponder$1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SocketResponder/bin/apps/java/loref/SocketResponder.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SocketResponder/bin/apps/java/loref/SocketResponderListener.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SocketResponder/src/apps/java/loref/AuthTimeoutCheckLoop.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SocketResponder/src/apps/java/loref/ConnectionListenerLoop.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SocketResponder/src/apps/java/loref/DefaultValues.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SocketResponder/src/apps/java/loref/InStreamReaderLoop.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SocketResponder/src/apps/java/loref/InactivityTimeoutCheckLoop.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SocketResponder/src/apps/java/loref/SocketConnection.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SocketResponder/src/apps/java/loref/SocketResponder.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SocketResponder/src/apps/java/loref/SocketResponderListener.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../TelegramBotComm/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../TelegramBotComm/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../TelegramBotComm/src/apps/java/loref/Bot.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../TelegramBotComm/src/apps/java/loref/Defaults.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../TelegramBotComm/src/apps/java/loref/SendMode.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../TelegramBotComm/src/apps/java/loref/TelegramBotComm.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../TelegramBotComm/src/apps/java/loref/TelegramBotCommListener.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../TelegramBotComm/src/apps/java/loref/TelegramBotMessage.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../TelegramBotComm/src/apps/java/loref/TelegramBotTextAndPictureMessage.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../TelegramBotComm/src/apps/java/loref/TelegramBotTextMessage.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../YouTubeComm/src/apps/java/loref/YouTubeComm.java" beforeDir="false" afterPath="$PROJECT_DIR$/../YouTubeComm/src/apps/java/loref/YouTubeComm.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../YouTubeComm/target/classes/META-INF/maven/YouTubeComm/YouTubeComm/pom.properties" beforeDir="false" afterPath="$PROJECT_DIR$/../YouTubeComm/target/classes/META-INF/maven/YouTubeComm/YouTubeComm/pom.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../YouTubeComm/target/classes/apps/java/loref/Auth.class" beforeDir="false" afterPath="$PROJECT_DIR$/../YouTubeComm/target/classes/apps/java/loref/Auth.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../YouTubeComm/target/classes/apps/java/loref/GetFirstAuth$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/../YouTubeComm/target/classes/apps/java/loref/GetFirstAuth$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../YouTubeComm/target/classes/apps/java/loref/GetFirstAuth.class" beforeDir="false" afterPath="$PROJECT_DIR$/../YouTubeComm/target/classes/apps/java/loref/GetFirstAuth.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../YouTubeComm/target/classes/apps/java/loref/Test.class" beforeDir="false" afterPath="$PROJECT_DIR$/../YouTubeComm/target/classes/apps/java/loref/Test.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../YouTubeComm/target/classes/apps/java/loref/YouTubeComm$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/../YouTubeComm/target/classes/apps/java/loref/YouTubeComm$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../YouTubeComm/target/classes/apps/java/loref/YouTubeComm$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/../YouTubeComm/target/classes/apps/java/loref/YouTubeComm$2.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../YouTubeComm/target/classes/apps/java/loref/YouTubeComm$3.class" beforeDir="false" afterPath="$PROJECT_DIR$/../YouTubeComm/target/classes/apps/java/loref/YouTubeComm$3.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../YouTubeComm/target/classes/apps/java/loref/YouTubeComm.class" beforeDir="false" afterPath="$PROJECT_DIR$/../YouTubeComm/target/classes/apps/java/loref/YouTubeComm.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../YouTubeComm/target/classes/apps/java/loref/YouTubeCommListener.class" beforeDir="false" afterPath="$PROJECT_DIR$/../YouTubeComm/target/classes/apps/java/loref/YouTubeCommListener.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../YouTubeComm/target/classes/apps/java/loref/YouTubeNotAuthorizedException.class" beforeDir="false" afterPath="$PROJECT_DIR$/../YouTubeComm/target/classes/apps/java/loref/YouTubeNotAuthorizedException.class" afterDir="false" />
+    </list>
+    <ignored path="$PROJECT_DIR$/out/" />
+    <ignored path="$PROJECT_DIR$/target/" />
+    <ignored path="$PROJECT_DIR$/../YouTubeComm/target/" />
+    <ignored path="$PROJECT_DIR$/../TelegramBotComm/target/" />
+    <ignored path="$PROJECT_DIR$/../MotionComm/target/" />
+    <ignored path="$PROJECT_DIR$/../General Utilities Libraries/target/" />
+    <ignored path="$PROJECT_DIR$/../FirebaseCloudUploader/target/" />
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="DefaultGradleProjectSettings">
+    <option name="isMigrated" value="true" />
+  </component>
+  <component name="FavoritesManager">
+    <favorites_list name="Domotic" />
+  </component>
+  <component name="FileEditorManager">
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/apps/java/loref/Domotic/DomoticCore.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="54655">
+              <caret line="3315" lean-forward="true" selection-start-line="3315" selection-end-line="3315" />
+              <folding>
+                <element signature="n#!!doc" expanded="true" />
+                <element signature="e#97132#98825#0" />
+                <element signature="e#98828#99200#0" />
+                <element signature="e#100335#100391#1" />
+                <element signature="e#100534#101183#0" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../FirebaseCloudUploader/src/apps/java/loref/FirebaseCloudUploader/FirebaseCloudUploader.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="216">
+              <caret line="319" column="45" selection-start-line="319" selection-start-column="45" selection-end-line="319" selection-end-column="45" />
+              <folding>
+                <element signature="imports" expanded="true" />
+                <element signature="e#1377#1378#0" expanded="true" />
+                <element signature="e#1406#1407#0" expanded="true" />
+                <element signature="method#getUploadEngineQueue#0;class#FirebaseCloudUploader#0" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../General Utilities Libraries/src/apps/java/loref/LogUtilities.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1122">
+              <caret line="67" column="51" selection-start-line="67" selection-start-column="51" selection-end-line="67" selection-end-column="51" />
+              <folding>
+                <element signature="imports" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>onNewF</find>
+      <find>getNetworkDeviceDataJSON</find>
+      <find>getStatusDeviceDataJSON</find>
+    </findStrings>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/../YouTubeComm/src/apps/java/loref/YouTubeComm.java" />
+        <option value="$PROJECT_DIR$/../FirebaseCloudUploader/src/apps/java/loref/FirebaseCloudUploader/FirebaseCloudUploader.java" />
+        <option value="$PROJECT_DIR$/src/apps/java/loref/Domotic/DomoticCore.java" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="129" />
+    <option name="y" value="147" />
+    <option name="width" value="1346" />
+    <option name="height" value="698" />
+  </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectView">
+    <navigator proportions="" version="1">
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="PackagesPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="Domotic" type="58d84e3e:PackageViewProjectNode" />
+              <item name="Domotic" type="616d4139:PackageViewModuleNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+      <pane id="Scope" />
+      <pane id="ProjectPane" />
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="ASKED_SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
+    <property name="GenerateAntBuildDialog.backupFiles" value="true" />
+    <property name="GenerateAntBuildDialog.enableUiFormCompile" value="true" />
+    <property name="GenerateAntBuildDialog.forceTargetJdk" value="true" />
+    <property name="GenerateAntBuildDialog.outputFileNameProperty" value="domotic" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../Domotic-Linux-Deploy/META-INF" />
+    <property name="project.structure.last.edited" value="Artifacts" />
+    <property name="project.structure.proportion" value="0.15" />
+    <property name="project.structure.side.proportion" value="0.41954023" />
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="e26bf237-bd3b-47c6-a5b0-c5ea287232c9" name="Default Changelist" comment="" />
+      <created>1556710031085</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1556710031085</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="-8" y="-8" width="1382" height="754" extended-state="6" />
+    <layout>
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49839228" weight="0.25340393" />
+      <window_info id="Structure" order="1" sideWeight="0.5016077" side_tool="true" weight="0.24962178" />
+      <window_info id="Image Layers" order="2" />
+      <window_info id="Designer" order="3" />
+      <window_info id="UI Designer" order="4" />
+      <window_info id="Capture Tool" order="5" />
+      <window_info id="Favorites" order="6" sideWeight="0.5016077" side_tool="true" weight="0.24962178" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="1" />
+      <window_info anchor="bottom" id="Run" order="2" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="bottom" id="Terminal" order="7" />
+      <window_info active="true" anchor="bottom" id="Event Log" order="8" sideWeight="0.50832075" side_tool="true" visible="true" weight="0.329582" />
+      <window_info anchor="bottom" id="Version Control" order="9" />
+      <window_info anchor="bottom" id="Messages" order="10" sideWeight="0.49167928" weight="0.329582" />
+      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="right" id="Palette" order="3" />
+      <window_info anchor="right" id="Maven" order="4" />
+      <window_info anchor="right" id="Theme Preview" order="5" />
+      <window_info anchor="right" id="Capture Analysis" order="6" />
+      <window_info anchor="right" id="Palette&#9;" order="7" />
+    </layout>
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/../YouTubeComm/src/apps/java/loref/YouTubeComm.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2295">
+          <caret line="163" column="7" selection-start-line="163" selection-start-column="7" selection-end-line="163" selection-end-column="7" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../TelegramBotComm/src/apps/java/loref/TelegramBotComm/Bot.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="106">
+          <caret line="41" selection-start-line="41" selection-end-line="41" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../SocketResponder/src/apps/java/loref/SocketResponder/InactivityTimeoutCheckLoop.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-527">
+          <caret line="35" column="8" selection-start-line="35" selection-start-column="8" selection-end-line="35" selection-end-column="8" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../MotionComm/src/apps/java/loref/MotionComm.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="136">
+          <caret line="42" column="36" selection-start-line="42" selection-start-column="36" selection-end-line="42" selection-end-column="36" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../General Utilities Libraries/src/apps/java/loref/LogUtilities.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1122">
+          <caret line="67" column="51" selection-start-line="67" selection-start-column="51" selection-end-line="67" selection-end-column="51" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../FirebaseCloudUploader/src/apps/java/loref/FirebaseCloudUploader/FirebaseCloudUploader.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="216">
+          <caret line="319" column="45" selection-start-line="319" selection-start-column="45" selection-end-line="319" selection-end-column="45" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#1377#1378#0" expanded="true" />
+            <element signature="e#1406#1407#0" expanded="true" />
+            <element signature="method#getUploadEngineQueue#0;class#FirebaseCloudUploader#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/apps/java/loref/Domotic/DomoticCore.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="54655">
+          <caret line="3315" lean-forward="true" selection-start-line="3315" selection-end-line="3315" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+            <element signature="e#97132#98825#0" />
+            <element signature="e#98828#99200#0" />
+            <element signature="e#100335#100391#1" />
+            <element signature="e#100534#101183#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+  </component>
+  <component name="masterDetails">
+    <states>
+      <state key="ArtifactsStructureConfigurable.UI">
+        <settings>
+          <artifact-editor />
+          <last-edited>Domotic:jar</last-edited>
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.25287357" />
+                <option value="0.5" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+      <state key="FacetStructureConfigurable.UI">
+        <settings>
+          <last-edited>No facets are configured</last-edited>
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.41954023" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+      <state key="GlobalLibrariesConfigurable.UI">
+        <settings>
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.2" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+      <state key="JdkListConfigurable.UI">
+        <settings>
+          <last-edited>1.8</last-edited>
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.41954023" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+      <state key="ModuleStructureConfigurable.UI">
+        <settings>
+          <last-edited>Domotic</last-edited>
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.41954023" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+      <state key="ProjectLibrariesConfigurable.UI">
+        <settings>
+          <last-edited>google-api-services-youtube-v3-rev198-1.23.0-javadoc</last-edited>
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.41954023" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+    </states>
+  </component>
+</project>

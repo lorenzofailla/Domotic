@@ -1,0 +1,49 @@
+{"show_status_select": {"lines": [
+  {"buttons": [
+    {
+      "action": "show_status_select___DEVICE",
+      "label": "Device"
+    },
+    {
+      "action": "show_status_select___NETWORK",
+      "label": "Network"
+    },
+    {
+      "action": "show_status_select___",
+      "label": "button13_label"
+    }
+  ]},
+  {"buttons": [{
+    "action": "show_status_select___UPLOAD_LOG_FILE",
+    "label": "Upload log file"
+  }]},
+  {"buttons": [
+    {
+      "action": "show_status_select___REBOOT",
+      "label": "Reboot"
+    },
+    {
+      "action": "show_status_select___SHUTDOWN",
+      "label": "Shutdown"
+    }
+  ]}
+]},"service_select": {"lines": [
+  {"buttons": [
+    {
+      "action": "service_select___STATUS",
+      "label": "Status"
+    },
+    {
+      "action": "service_select___TORRENT",
+      "label": "Torrent"
+    },
+    {
+      "action": "service_select___WAKEONLAN",
+      "label": "button13_label"
+    }
+  ]},
+  {"buttons": [{
+    "action": "show_status_select___VIDEOSURVEILLANCE",
+    "label": "Videosurveillance"
+  }]}
+]}}

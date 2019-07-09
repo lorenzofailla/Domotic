@@ -161,12 +161,13 @@ public class YouTubeComm {
 
 	}
 
+	/**
+	 * Elimina i LiveBroadcast il cui LifeCycleStatus è in stato "complete".
+	 * Restituisce il numero di LiveBroadcast trovati in stato "complete".
+	 */
 	public int deleteCompletedBroadcasts() {
 
-		/*
-		 * Elimina i LiveBroadcast il cui LifeCycleStatus è in stato "complete".
-		 * Restituisce il numero di LiveBroadcast trovati in stato "complete".
-		 */
+
 
 		// contatore dei LiveBroadcast trovati in stato "complete"
 		int nOfCompleteLiveBroadcasts = 0;

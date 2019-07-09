@@ -33,6 +33,9 @@ package apps.java.loref;
 import static apps.java.loref.GeneralUtilitiesLibrary.sleepSafe;
 import static apps.java.loref.NetworkTools.checkInetConnection;
 
+import static apps.java.loref.LogUtilities.debugLog_GRAYXTERM;
+
+
 /**
  * TODO Put here a description of what this class does.
  *
@@ -72,6 +75,12 @@ public class InternetConnectionCheck {
 	public boolean getConnectionAvailable() {
 		return this.connectionAvailableFlag;
 	}
+	
+	private boolean debugMode=false;
+	
+	public void setDebugMode(boolean value){
+		this.debugMode = value;
+	}
 
 	private InternetConnectionStatusListener listener;
 
@@ -101,7 +110,9 @@ public class InternetConnectionCheck {
 
 				boolean connectionStatus = checkInetConnection(
 						InternetConnectionCheck.this.connectivityTestServerAddress);
-
+				
+				if(InternetConnectionCheck.this.debugMode)
+					debugLog_GRAYXTERM(this.getClass(), "Connection check result: " + connectionStatus+ ". Connection test server: " + InternetConnectionCheck.this.connectivityTestServerAddress);
 				
 				if (connectionStatus != InternetConnectionCheck.this.connectionAvailable) {
 
@@ -122,7 +133,9 @@ public class InternetConnectionCheck {
 				}
 
 				sleepSafe(InternetConnectionCheck.this.connectivityCheckRate);
-
+				if(InternetConnectionCheck.this.debugMode)
+					debugLog_GRAYXTERM(this.getClass(), "Thread loop check. Sleep time: "+InternetConnectionCheck.this.connectivityCheckRate);
+				
 			}
 
 		}
@@ -134,12 +147,19 @@ public class InternetConnectionCheck {
 		this.mainThreadActivity = true;
 		new MainThread().start();
 
+		if(this.debugMode)
+			debugLog_GRAYXTERM(this.getClass(), "Main thread started.");
+			
+			
 	}
 
 	public void stop() {
 
 		this.mainThreadActivity = false;
 
+		if(this.debugMode)
+			debugLog_GRAYXTERM(this.getClass(), "Main thread stopped.");
+		
 	}
 
 }
