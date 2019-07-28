@@ -63,6 +63,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,6 +71,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+
+import javax.swing.text.html.HTMLDocument.HTMLReader.IsindexAction;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -155,7 +158,6 @@ public class DomoticCore {
 					.append(this.deviceName).toString();
 
 		case MOTION_EVENTS:
-
 			return new StringBuilder().append(MOTION_EVENTS_NODE).append("/").append(this.groupName).toString();
 
 		case DEVICE:
@@ -220,7 +222,7 @@ public class DomoticCore {
 			// resume the Firebase Uploader
 			this.firebaseCloudUploader.resume();
 			printLog(LogTopics.LOG_TOPIC_INET_IN, "Firebase cloud upload engine resumed.");
-			
+
 			// attaches the listeners to the database nodes
 			attachListeners();
 
@@ -246,6 +248,35 @@ public class DomoticCore {
 	private boolean hasVideoSurveillance = false;
 
 	private String logsNode = "";
+
+	// --------------------------------------------------------------------------------------------
+	// @SECTION: Periodical cleanup of files and data relevant to motion events in
+	// Firebase
+	// --------------------------------------------------------------------------------------------
+
+	private class FirebaseMotionEventsCleanup extends TimerTask {
+
+		@Override
+		public void run() {
+
+			// controlla se la connessione è disponibile
+			if (!DomoticCore.this.internetConnectionCheck.getConnectionAvailable()) { // connessione non disponibile.
+																						// stampa un messaggio di log e
+																						// termina la procedura
+				printLog(LogTopics.LOG_TOPIC_TIMER_TASK,
+						"Periodical cleanup of Motion Events data and files skipped due to internet connection unavailability.");
+				return;
+			}
+
+			// attacca un ChildEventListener a tutti gli eventi il cui timestamp è minore di
+			// un valore
+			Calendar calendar = Calendar.getInstance();
+			calendar.add(Calendar.MONTH,-2);
+			getDBReference(DatabaseNodes.MOTION_EVENTS).orderByChild("timestamp").endAt(calendar.getTimeInMillis());
+
+		}
+
+	}
 
 	// --------------------------------------------------------------------------------------------
 	// @SECTION: Device status periodical update
@@ -278,7 +309,8 @@ public class DomoticCore {
 		@Override
 		public void run() {
 
-			// Manages a timeout issue when trying to update the device status over the Firebase DB node.
+			// Manages a timeout issue when trying to update the device status over the
+			// Firebase DB node.
 
 			// Prints a log message
 			printLog(LogTopics.LOG_TOPIC_ERROR, "Timeout exceeded during device status update on Firebase DB node.");
@@ -456,13 +488,14 @@ public class DomoticCore {
 
 	private void updateTMateStatus() {
 
-		//		HashMap<String, Object> tMateStatus = new HashMap<>();
-		//		tMateStatus.put("SSHAddress", "later");
-		//		tMateStatus.put("WebAddress", "later");
+		// HashMap<String, Object> tMateStatus = new HashMap<>();
+		// tMateStatus.put("SSHAddress", "later");
+		// tMateStatus.put("WebAddress", "later");
 		//
-		//		String refNode = GROUP_NODE + "/" + this.groupName + "/" + DEVICES_NODE + "/" + this.thisDevice + "/"
-		//				+ TMATE_DATA_NODE;
-		//		FirebaseDatabase.getInstance().getReference(refNode).setValueAsync(tMateStatus);
+		// String refNode = GROUP_NODE + "/" + this.groupName + "/" + DEVICES_NODE + "/"
+		// + this.thisDevice + "/"
+		// + TMATE_DATA_NODE;
+		// FirebaseDatabase.getInstance().getReference(refNode).setValueAsync(tMateStatus);
 
 	}
 
@@ -529,24 +562,25 @@ public class DomoticCore {
 
 			String color;
 			String topic;
-			
+
 			String chatID = callbackQuery.getMessage().getChatId().toString();
 			String userID = callbackQuery.getFrom().getId().toString();
 			String callBackData = callbackQuery.getData();
 			String messageID = callbackQuery.getMessage().getMessageId().toString();
-			
+
 			if (isAuthenticated) { // message sender is authenticated
 
 				color = LogUtilities.GREEN;
 				topic = LogTopics.LOG_TOPIC_AUTHENTICATED_TELEGRAM_CALLBACK_IN;
 
 				String callBackArgument = callBackData.split("___")[1];
-							
+
 				// obtains a clone of the INIT MESSAGE
 				TelegramBotTextMessage referenceMessage = null;
 				if (DomoticCore.this.telegramInitMessagesMap.containsKey(chatID)) {
 
-					// obtains a copy of the init message in order to modify it according to the selection
+					// obtains a copy of the init message in order to modify it according to the
+					// selection
 					referenceMessage = DomoticCore.this.telegramInitMessagesMap.get(chatID).getClone();
 					referenceMessage.setMode(SendMode.UPDATE);
 
@@ -581,7 +615,7 @@ public class DomoticCore {
 							DomoticCore.this.telegramBot.send(referenceMessage);
 
 							break;
-							
+
 						case "STATUS": // shows the options for the wake on lan service
 
 							referenceMessage.setMode(SendMode.UPDATE);
@@ -620,27 +654,34 @@ public class DomoticCore {
 					// turns back to init message
 					DomoticCore.this.telegramBot.send(referenceMessage);
 
-				} else if (callBackData.startsWith("subscription_removal")) { // attempts to remove the message sender's ID from the given notifications subscription list
+				} else if (callBackData.startsWith("subscription_removal")) { // attempts to remove the message sender's
+																				// ID from the given notifications
+																				// subscription list
 
-					if (DomoticCore.this.notificationSubscriptions.containsKey(callBackArgument)) { // a notification subscription has been found
+					if (DomoticCore.this.notificationSubscriptions.containsKey(callBackArgument)) { // a notification
+																									// subscription has
+																									// been found
 
 						// remove the message sender's ID from the list.
 						List<String> subscriptions = DomoticCore.this.notificationSubscriptions.get(callBackArgument);
 						if (subscriptions.removeIf(s -> s.startsWith("" + chatID))) { // operation succeeded
-														
-							// logs the event
-							printLogColor(LogUtilities.GREEN, LogTopics.LOG_TOPIC_AUTHENTICATED_TELEGRAM_CALLBACK_IN, String.format("Recipient ID \"%s\" successfully removed from subscription \"%s\".", chatID, messageID));
 
-							
+							// logs the event
+							printLogColor(LogUtilities.GREEN, LogTopics.LOG_TOPIC_AUTHENTICATED_TELEGRAM_CALLBACK_IN,
+									String.format("Recipient ID \"%s\" successfully removed from subscription \"%s\".",
+											chatID, messageID));
+
 						} else { // something went wrong
 
 							// logs
-							printLogColor(LogUtilities.YELLOW, LogTopics.LOG_TOPIC_AUTHENTICATED_TELEGRAM_CALLBACK_IN, String.format("Failed to remove recipient ID \"%s\" from subscription \"%s\".", chatID, messageID));
+							printLogColor(LogUtilities.YELLOW, LogTopics.LOG_TOPIC_AUTHENTICATED_TELEGRAM_CALLBACK_IN,
+									String.format("Failed to remove recipient ID \"%s\" from subscription \"%s\".",
+											chatID, messageID));
 
 						}
-						
-					} 
-					
+
+					}
+
 				}
 
 			} else { // message sender is not authenticated
@@ -721,7 +762,8 @@ public class DomoticCore {
 
 		JSONObject telegramBotConfigJson = new JSONObject(
 				readPlainTextFromFile(new File(TELEFGRAM_CONFIG_FILE_LOCATION)));
-		if (telegramBotConfigJson.has("user_id") && telegramBotConfigJson.has("token")) { // inizializza la classe del bot Telegram
+		if (telegramBotConfigJson.has("user_id") && telegramBotConfigJson.has("token")) { // inizializza la classe del
+																							// bot Telegram
 
 			printLog(LogTopics.LOG_TOPIC_INIT, "Creating bot...");
 			this.telegramBot = new TelegramBotComm(telegramBotConfigJson.getString("user_id"),
@@ -857,7 +899,7 @@ public class DomoticCore {
 
 		for (String user : this.telegramBot.getRecipientsList()) {
 
-			//this.telegramBot.send(getTelegramInitMessage(user));
+			// this.telegramBot.send(getTelegramInitMessage(user));
 			processIncomingTelegramMessage(user, "/start");
 
 		}
@@ -868,7 +910,8 @@ public class DomoticCore {
 		sendToNotificationList(HTMLMessage, notificationListID, updateIfExists, null, -1, -1);
 	}
 
-	private void sendToNotificationList(String HTMLMessage, String notificationListID, boolean updateIfExists, JSONObject keyboard) {
+	private void sendToNotificationList(String HTMLMessage, String notificationListID, boolean updateIfExists,
+			JSONObject keyboard) {
 		sendToNotificationList(HTMLMessage, notificationListID, updateIfExists, keyboard, -1, -1);
 	}
 
@@ -893,13 +936,13 @@ public class DomoticCore {
 					message.setTag(notificationListID);
 
 				}
-				
+
 				if (keyboard != null)
 					message.setKeyboard(keyboard);
 
 				message.setKeyboardTimeOut(keyboardTimeout);
 				message.setLifeTimeOut(messageTimeout);
-				
+
 				this.telegramBot.send(message);
 
 			}
@@ -969,8 +1012,8 @@ public class DomoticCore {
 		line = new JSONObject();
 
 		// button: 'get picture'
-		optionButton = new JSONObject().put("action", "videocamera_option___" + cameraID+","+"get_picture").put("label",
-				"Get picture");
+		optionButton = new JSONObject().put("action", "videocamera_option___" + cameraID + "," + "get_picture")
+				.put("label", "Get picture");
 		line.append("buttons", optionButton);
 		keyboard.append("lines", line);
 
@@ -978,13 +1021,13 @@ public class DomoticCore {
 		line = new JSONObject();
 
 		// button: 'get live stream link'
-		optionButton = new JSONObject().put("action", "videocamera_option___" + cameraID+","+"get_livestream").put("label",
-				"Live stream");
+		optionButton = new JSONObject().put("action", "videocamera_option___" + cameraID + "," + "get_livestream")
+				.put("label", "Live stream");
 		line.append("buttons", optionButton);
 
 		// button: 'get a motion'
-		optionButton = new JSONObject().put("action", "videocamera_option___" + cameraID+","+"emulate_motion").put("label",
-				"Emulate motion");
+		optionButton = new JSONObject().put("action", "videocamera_option___" + cameraID + "," + "emulate_motion")
+				.put("label", "Emulate motion");
 		line.append("buttons", optionButton);
 
 		keyboard.append("lines", line);
@@ -1000,7 +1043,7 @@ public class DomoticCore {
 		return keyboard;
 
 	}
-	
+
 	private JSONObject getBackToInitKeyboard() {
 
 		JSONObject keyboard = new JSONObject();
@@ -1009,13 +1052,13 @@ public class DomoticCore {
 		return keyboard;
 
 	}
-	
+
 	private JSONObject getBackToInitLine() {
 
 		JSONObject line = new JSONObject();
 		JSONObject backBtn = new JSONObject().put("action", "service_select___INIT").put("label", "< Back");
 		line.append("buttons", backBtn);
-		
+
 		return line;
 
 	}
@@ -1112,7 +1155,8 @@ public class DomoticCore {
 			printLog(LogTopics.LOG_TOPIC_INET_IN,
 					"Internet connectivity available after " + inactivityTime / 1000 + " seconds.");
 
-			// detach listeners, cancel the periodical tasks and destroy the firebase database app
+			// detach listeners, cancel the periodical tasks and destroy the firebase
+			// database app
 			if (!DomoticCore.this.servicesConnected) {
 				goOnLine();
 
@@ -1120,7 +1164,8 @@ public class DomoticCore {
 
 				if (DomoticCore.this.telegramBotActive) { // the Telegram Bot is up
 
-					// dispatch the message to all the user who subsribed the topic relevant to the internet connectivity restore
+					// dispatch the message to all the user who subsribed the topic relevant to the
+					// internet connectivity restore
 
 					JSONObject keyboard = new JSONObject();
 
@@ -1130,7 +1175,9 @@ public class DomoticCore {
 					line.append("buttons", button);
 					keyboard.append("lines", line);
 
-					DomoticCore.this.sendToNotificationList(String.format("Internet connectivity has been restored. Unavailabiliy time: %s seconds.", inactivityTime / 1000 ),
+					DomoticCore.this.sendToNotificationList(
+							String.format("Internet connectivity has been restored. Unavailabiliy time: %s seconds.",
+									inactivityTime / 1000),
 							"connectionrestored", false, keyboard, -1, 120000);
 
 				}
@@ -1147,7 +1194,8 @@ public class DomoticCore {
 
 			printLog(LogTopics.LOG_TOPIC_INET_OUT, "Internet connectivity not available.");
 
-			// detach listeners, cancel the periodical tasks and destroy the firebase database app
+			// detach listeners, cancel the periodical tasks and destroy the firebase
+			// database app
 			if (DomoticCore.this.servicesConnected)
 				goOffLine();
 
@@ -1184,11 +1232,13 @@ public class DomoticCore {
 
 			RemoteCommand remoteCommand = snapshot.getValue(RemoteCommand.class);
 
-			// waits for a TICK, this is needed in order to avoid possible duplicate timestamps
+			// waits for a TICK, this is needed in order to avoid possible duplicate
+			// timestamps
 
 			sleepSafe(10);
 
-			// performs the needed operations according to the content of the incoming message
+			// performs the needed operations according to the content of the incoming
+			// message
 			replyToRemoteCommand(remoteCommand, snapshot.getKey(), null);
 
 		}
@@ -1206,8 +1256,9 @@ public class DomoticCore {
 		@Override
 		public void onDataChange(DataSnapshot snapshot) {
 
-			//TODO: for some reason, some client put the Online key value to false.
-			// this should force a call to a verification of the online status, and trigger the necessary actions in case
+			// TODO: for some reason, some client put the Online key value to false.
+			// this should force a call to a verification of the online status, and trigger
+			// the necessary actions in case
 		}
 
 		@Override
@@ -1276,7 +1327,8 @@ public class DomoticCore {
 	private String youTubeOAuthFolder = "";
 
 	private HashMap<String, String> youTubeLiveBroadcasts; // registra i LiveBroadcast ID delle varie videocamere
-	private HashMap<String, String> youTubeLiveStreamRequestors; // registra i dispositivi che	richiedono	un live	streaming
+	private HashMap<String, String> youTubeLiveStreamRequestors; // registra i dispositivi che richiedono un live
+																	// streaming
 
 	private MotionCommListener motionCommListener = new MotionCommListener() {
 
@@ -1295,13 +1347,15 @@ public class DomoticCore {
 
 				sendMessageToDevice(remoteCommand, destination, "");
 
-			} else if (destination.startsWith("tgm://")) { // Sends the received camera data in a message on the TelegramBot
+			} else if (destination.startsWith("tgm://")) { // Sends the received camera data in a message on the
+															// TelegramBot
 
 			}
 
-			// By default, stores the the received camera data into the relevant Firebase Database node.
+			// By default, stores the the received camera data into the relevant Firebase
+			// Database node.
 
-			if (!DomoticCore.this.firebaseCloudUploader.isPaused()) { // the FirebaseCloudUploader is active 
+			if (!DomoticCore.this.firebaseCloudUploader.isPaused()) { // the FirebaseCloudUploader is active
 
 				// set the position in the Firebase Cloud Storage
 				String remotePosition = VIDEOCAMERA_SHOT_CLOUD_URL
@@ -1365,12 +1419,14 @@ public class DomoticCore {
 									// obtain a signed URL to easily download the picture
 									URL url = info.signUrl(5, TimeUnit.MINUTES);
 
-									// dispatch the message to all the user who subscribed the topic relevant to the frame update of this camera
+									// dispatch the message to all the user who subscribed the topic relevant to the
+									// frame update of this camera
 									DomoticCore.this.sendToNotificationList(
 											"New <a href=\"" + url + "\">frame</a> received from <b>"
 													+ DomoticCore.this.motionComm.getCameraName(cameraID) + "</b> at "
 													+ getTimeStamp("HH.mm") + ".",
-											"frameupdates_camera_" + cameraID, true, getTelegramVideocameraOptionsKeyboard(cameraID));
+											"frameupdates_camera_" + cameraID, true,
+											getTelegramVideocameraOptionsKeyboard(cameraID));
 
 								}
 
@@ -1378,7 +1434,8 @@ public class DomoticCore {
 
 						});
 
-			} else { // the FirebaseCloudUploader is paused, therefore the frame upload will be skipped.
+			} else { // the FirebaseCloudUploader is paused, therefore the frame upload will be
+						// skipped.
 
 				printLog(LogTopics.LOG_TOPIC_VSURV, String.format("Frame skipped."));
 
@@ -1647,11 +1704,10 @@ public class DomoticCore {
 	/**
 	 * 
 	 * Analyzes the content of the RemoteCommand object coming from a client.
-	 * Performs operations accordingly and, if needed, provides a reply in the
-	 * form of a RemoteCommand object.
+	 * Performs operations accordingly and, if needed, provides a reply in the form
+	 * of a RemoteCommand object.
 	 *
-	 * @param incomingCommand
-	 *            - the RemoteCommand object coming from a client
+	 * @param incomingCommand - the RemoteCommand object coming from a client
 	 * @return null or, if needed, a RemoteCommand object to be sent to the
 	 *         requestor client.
 	 */
@@ -1899,11 +1955,21 @@ public class DomoticCore {
 
 		case "__start_streaming_request":
 
-			if (this.youTubeComm != null && this.hasVideoSurveillance && this.motionComm != null) { // se � stata inizializzata l'interfaccia Youtube e si dispone della videosorveglianza, crea un canale di streaming
+			if (this.youTubeComm != null && this.hasVideoSurveillance && this.motionComm != null) { // se � stata
+																									// inizializzata
+																									// l'interfaccia
+																									// Youtube e si
+																									// dispone della
+																									// videosorveglianza,
+																									// crea un canale di
+																									// streaming
 
-				// controlla che vi sia gi� una richiesta streaming in corso sul thread specificato.
+				// controlla che vi sia gi� una richiesta streaming in corso sul thread
+				// specificato.
 				// Se non c'� nessuna richiesta, crea un nuovo streaming
-				if (this.youTubeLiveStreamRequestors.containsValue(incomingCommand.getBody())) { // c'� gi� una richiesta in corso.
+				if (this.youTubeLiveStreamRequestors.containsValue(incomingCommand.getBody())) { // c'� gi� una
+																									// richiesta in
+																									// corso.
 
 					// stampa un messaggio di log
 					printLog(LogTopics.LOG_TOPIC_VSURV,
@@ -1944,7 +2010,9 @@ public class DomoticCore {
 			// controlla se esiste ancora almeno un richiedente per il thread ID
 			// specificato. se non esiste almeno un richiedente, termina lo streaming
 
-			if (!this.youTubeLiveStreamRequestors.containsValue(incomingCommand.getBody())) {// non ci sono richiedenti per il thread ID specificato
+			if (!this.youTubeLiveStreamRequestors.containsValue(incomingCommand.getBody())) {// non ci sono richiedenti
+																								// per il thread ID
+																								// specificato
 
 				// stampa messaggio di log
 				printLog(LogTopics.LOG_TOPIC_CMDEXEC, String.format(
@@ -2074,37 +2142,36 @@ public class DomoticCore {
 			return new RemoteCommand(ReplyPrefix.LOG_REPLY,
 					encode(GeneralUtilitiesLibrary.getFileAsBytes(LOGFILE_LOCATION)), this.deviceName);
 
-			
 		case "__get_firebase_cloud_queue_items":
-			
-			if (this.firebaseCloudUploader!=null){
-			return new RemoteCommand(ReplyPrefix.LOG_REPLY,
-					encode(this.firebaseCloudUploader.getUploadEngineQueue()), this.deviceName);
-			} else {
+
+			if (this.firebaseCloudUploader != null) {
 				return new RemoteCommand(ReplyPrefix.LOG_REPLY,
-						encode("No Firebase Cloud Uploader instance."), this.deviceName);
-			
+						encode(this.firebaseCloudUploader.getUploadEngineQueue()), this.deviceName);
+			} else {
+				return new RemoteCommand(ReplyPrefix.LOG_REPLY, encode("No Firebase Cloud Uploader instance."),
+						this.deviceName);
+
 			}
-			
+
 		case "__notify_motion_event":
-			
-			if(this.telegramBotActive && this.motionComm!=null){
-				
-				// dispatch the message to all the user who subsribed the topic relevant to the frame update of this camera
+
+			if (this.telegramBotActive && this.motionComm != null) {
+
+				// dispatch the message to all the user who subsribed the topic relevant to the
+				// frame update of this camera
 				DomoticCore.this.sendToNotificationList(
-						"Motion detected by " + this.motionComm.getCameraName(incomingCommand.getBody()) + " right now! The video of the event will be available shortly...",
+						"Motion detected by " + this.motionComm.getCameraName(incomingCommand.getBody())
+								+ " right now! The video of the event will be available shortly...",
 						"motionupdates_camera_" + incomingCommand.getBody(), false, null, -1, 10000);
-				
+
 			}
-			
-			if(this.isFCMServiceEnabled) { // the Firebase Cloud Messaging service is enabled
-				
-				
+
+			if (this.isFCMServiceEnabled) { // the Firebase Cloud Messaging service is enabled
+
 			}
-				
-			
+
 			return null;
-			
+
 		default:
 
 			return new RemoteCommand(ReplyPrefix.UNRECOGNIZED_COMMAND, "null", this.deviceName);
@@ -2170,7 +2237,8 @@ public class DomoticCore {
 	private void replyToRemoteCommand(RemoteCommand rc, String commandID, HashMap<String, Object> params) {
 
 		switch (rc.getHeader()) {
-		// if header is "__shutdown" or "__reboot", remove the command before performing the operation
+		// if header is "__shutdown" or "__reboot", remove the command before performing
+		// the operation
 
 		case "__shutdown":
 			printLog(LogTopics.LOG_TOPIC_MAIN, "Shutdown; Requested by: " + rc.getReplyto());
@@ -2192,7 +2260,7 @@ public class DomoticCore {
 				// invia la risposta al dispositivo remoto
 				sendMessageToDevice(reply, rc.getReplyto(), commandID, params);
 
-			} else { // no reply has to be sent 
+			} else { // no reply has to be sent
 
 				// rimuove il comando immediatamente
 				removeCommand(commandID, -1);
@@ -2245,7 +2313,8 @@ public class DomoticCore {
 			DatabaseReference databaseReference = FirebaseDatabase.getInstance()
 					.getReference(getDatabaseNode(DatabaseNodes.INCOMING_COMMANDS)).child(device);
 
-			// imposta il messaggio di risposta nel nodo, una volta completata l'operazione rimuove il comando
+			// imposta il messaggio di risposta nel nodo, una volta completata l'operazione
+			// rimuove il comando
 			databaseReference.child(getTimeStamp()).setValue(message, new CompletionListener() {
 
 				@Override
@@ -2708,7 +2777,10 @@ public class DomoticCore {
 
 		if (this.hasVideoSurveillance) { // Device enabled for videosurveillance.
 
-			if (!(this.youTubeJSONLocation.equals("") || this.youTubeOAuthFolder.equals(""))) { // inizializza un'istanza di YouTubeComm e assegna il listener
+			if (!(this.youTubeJSONLocation.equals("") || this.youTubeOAuthFolder.equals(""))) { // inizializza
+																								// un'istanza di
+																								// YouTubeComm e assegna
+																								// il listener
 
 				printLog(LogTopics.LOG_TOPIC_INIT, "Checking Youtube credentials...");
 
@@ -3111,10 +3183,10 @@ public class DomoticCore {
 	 * Called by a local command generated by motion daemon.
 	 * 
 	 * Uploads a video file of the motion event, as described in the params
-	 * Metadata, into the proper position in the Firebase Cloud Storage. When
-	 * the upload is completed, a data entry is generated into the Events node
-	 * of the Firebase Database, and a real time notification is sent to the
-	 * group topic, so that all devices may see it.
+	 * Metadata, into the proper position in the Firebase Cloud Storage. When the
+	 * upload is completed, a data entry is generated into the Events node of the
+	 * Firebase Database, and a real time notification is sent to the group topic,
+	 * so that all devices may see it.
 	 * 
 	 */
 	private void processMotionEvent(String params) {
@@ -3184,7 +3256,8 @@ public class DomoticCore {
 						eventData.put("CameraName", cameraName); // camera name
 						eventData.put("VideoID", eventVideoID);// short file name of the video file of the event
 						eventData.put("Device", DomoticCore.this.deviceName); // device id
-						eventData.put("ThumbnailID", eventThumbnailID); // compressed data, string encoded, of the jpeg of the event
+						eventData.put("ThumbnailID", eventThumbnailID); // compressed data, string encoded, of the jpeg
+																		// of the event
 
 						eventData.put("NewItem", "true"); // boolean, string encoded
 						eventData.put("LockedItem", "false"); // boolean, string encoded
@@ -3196,7 +3269,13 @@ public class DomoticCore {
 								.setValue(eventData, new CompletionListener() {
 
 									@Override
-									public void onComplete(DatabaseError error, DatabaseReference ref) { // the Events Node in the Firebase Database has been uploaded
+									public void onComplete(DatabaseError error, DatabaseReference ref) { // the Events
+																											// Node in
+																											// the
+																											// Firebase
+																											// Database
+																											// has been
+																											// uploaded
 
 										if (error == null) { // with no errors
 
@@ -3212,11 +3291,12 @@ public class DomoticCore {
 												data.put("eventID", eventVideoID);
 
 												notificationID = sendFCM(DomoticCore.this.fcmServiceKey,
-														"/topics/" + DomoticCore.this.groupName, "Video of the motion event has been uploaded.",
-														cameraName, data.toString());
+														"/topics/" + DomoticCore.this.groupName,
+														"Video of the motion event has been uploaded.", cameraName,
+														data.toString());
 
 											} else { // with errors
- 
+
 												notificationID = "<ERROR>";
 
 											}
@@ -3235,8 +3315,9 @@ public class DomoticCore {
 									}
 
 								});
-						
-						// set up the FirebaseCloudUploader and start the upload operation of the thumbnail image
+
+						// set up the FirebaseCloudUploader and start the upload operation of the
+						// thumbnail image
 						DomoticCore.this.firebaseCloudUploader.addToQueue(localImageFilePath, remoteImagePosition,
 								new FirebaseUploadItemListener() {
 
@@ -3248,12 +3329,12 @@ public class DomoticCore {
 
 									@Override
 									public void onComplete(Blob info, String uploadID) {
-										
+
 										// print log entry
 										printLogColor(LogUtilities.GREEN, LogTopics.LOG_TOPIC_VSURV,
-												"Thumbnail file for motion event successfully uploaded (" + info.getSize()
-														+ " bytes).");
-										
+												"Thumbnail file for motion event successfully uploaded ("
+														+ info.getSize() + " bytes).");
+
 										// deletes the local files
 										new File(localImageFilePath).delete();
 										new File(localVideoFilePath).delete();
@@ -3278,7 +3359,8 @@ public class DomoticCore {
 							line.append("buttons", button);
 							keyboard.append("lines", line);
 
-							// dispatch the message to all the user who subsribed the topic relevant to the frame update of this camera
+							// dispatch the message to all the user who subsribed the topic relevant to the
+							// frame update of this camera
 							DomoticCore.this.sendToNotificationList(
 									"<a href=\"" + url + "\">Motion detected</a> by <b>" + cameraName + "</b> at "
 											+ getTimeStamp("HH.mm") + ".",
@@ -3288,13 +3370,13 @@ public class DomoticCore {
 
 					}
 
-				});	
+				});
 
 	}
 
 	private void refreshTmate() {
 
-		//calls /usr/local/bin/refresh-tmate script, to refresh the tmate session
+		// calls /usr/local/bin/refresh-tmate script, to refresh the tmate session
 
 		try {
 
@@ -3417,7 +3499,7 @@ public class DomoticCore {
 
 		result.put("GeneralStatus", generalStatus);
 
-		if(this.firebaseCloudUploader!=null) {
+		if (this.firebaseCloudUploader != null) {
 
 			result.put("CloudUploaderEngine", this.firebaseCloudUploader.getUploadEngineStatus());
 
@@ -3426,22 +3508,24 @@ public class DomoticCore {
 		return result.toString();
 
 	}
-	
-	private String getStatusMsg(){
-		
-		StringBuilder result=new StringBuilder();
-		
+
+	private String getStatusMsg() {
+
+		StringBuilder result = new StringBuilder();
+
 		result.append("General\n");
 		result.append(String.format(" Uptime: %s\n", getUptime()));
-		result.append(String.format(" Mass storage: %d/%d MiB (%0.1f %% free)\n",getTotalSpace("/")-getFreeSpace("/"), getTotalSpace("/"), getFreeSpace("/")/getTotalSpace("/")*100.0));
+		result.append(
+				String.format(" Mass storage: %d/%d MiB (%0.1f %% free)\n", getTotalSpace("/") - getFreeSpace("/"),
+						getTotalSpace("/"), getFreeSpace("/") / getTotalSpace("/") * 100.0));
 		result.append(String.format(" Running since: %s", this.runningSince));
-		
+
 		result.append("Network\n");
-		result.append(String.format(" Public IP: %s\n",  getPublicIPAddresses()));
-		result.append(String.format(" Local IP: %s\n",  getLocalIPAddresses()));
-		
+		result.append(String.format(" Public IP: %s\n", getPublicIPAddresses()));
+		result.append(String.format(" Local IP: %s\n", getLocalIPAddresses()));
+
 		return result.toString();
-				
+
 	}
 
 }
