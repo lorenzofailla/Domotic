@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="Domotic/src"/>
+	<classpathentry kind="src" path="FirebaseCloudUploader/src"/>
+	<classpathentry kind="src" path="General Utilities Libraries/src"/>
+	<classpathentry kind="src" path="InternetConnectionCheck/src"/>
+	<classpathentry kind="src" path="MotionComm/src"/>
+	<classpathentry kind="src" path="SocketResponder/src"/>
+	<classpathentry kind="src" path="TelegramBotComm/src"/>
+	<classpathentry kind="src" path="YouTubeComm/src"/>
+	<classpathentry kind="lib" path="Domotic/out/artifacts/Domotic_jar/Domotic.jar"/>
+	<classpathentry kind="lib" path="General Utilities Libraries/bin/gul.jar"/>
+	<classpathentry kind="output" path="Domotic/out/production/InternetConnectionCheck"/>
+</classpath>

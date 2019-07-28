@@ -127,7 +127,7 @@ public class DomoticCore {
 
 	private final long runningSince = System.currentTimeMillis();
 
-	private boolean notificationsEnabled = false;
+	private boolean isFCMServiceEnabled = false;
 	private String fcmServiceKey = "";
 
 	private boolean firebaseServicesEnabled = false;
@@ -1517,11 +1517,11 @@ public class DomoticCore {
 		System.out.println(getTimeStamp("ddd dd/MMM/YYYY - hh.mm.ss"));
 		System.out.println("--------------------------------------------------------------------------------");
 		System.out.println();
-		System.out.println("####   ###  #   #  ###  ##### ###  ####");
-		System.out.println("#   # #   # ## ## #   #   #    #  #");
-		System.out.println("#   # #   # # # # #   #   #    #  #");
-		System.out.println("#   # #   # #   # #   #   #    #  #");
-		System.out.println("####   ###  #   #  ###    #    #   ####");
+		System.out.println("   /     ####   ###  #   #  ###  ##### ###  ####");
+		System.out.println("  /      #   # #   # ## ## #   #   #    #  #");
+		System.out.println("         #   # #   # # # # #   #   #    #  #");
+		System.out.println("  \\      #   # #   # #   # #   #   #    #  #");
+		System.out.println("   \\     ####   ###  #   #  ###    #    #   ####");
 		System.out.println();
 		System.out.println("--------------------------------------------------------------------------------");
 		printLog(LogTopics.LOG_TOPIC_INIT, "Domotic for linux desktop - by Lorenzo Failla");
@@ -1572,7 +1572,7 @@ public class DomoticCore {
 
 		printLog(LogTopics.LOG_TOPIC_INIT, "Internet connectivity loop check started.");
 
-		// adds a shutdownhook to handle the termination of the application
+		// adds a ShutdownHook to handle the termination of the application
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 
 			@Override
@@ -1614,7 +1614,7 @@ public class DomoticCore {
 		this.firebaseCloudUploader.terminate();
 		printLog(LogTopics.LOG_TOPIC_INET_OUT, "Firebase cloud upload engine terminated.");
 
-		// if specified, shuts down the video surveillance daemon
+		// if specified, shuts down the videosurveillance daemon
 		if (this.hasVideoSurveillance && !this.videoSurveillanceDaemonShutdownCommand.equals("")) {
 
 			try {
@@ -1899,11 +1899,11 @@ public class DomoticCore {
 
 		case "__start_streaming_request":
 
-			if (this.youTubeComm != null && this.hasVideoSurveillance && this.motionComm != null) { // se è stata inizializzata l'interfaccia Youtube e si dispone della videosorveglianza, crea un canale di streaming
+			if (this.youTubeComm != null && this.hasVideoSurveillance && this.motionComm != null) { // se ï¿½ stata inizializzata l'interfaccia Youtube e si dispone della videosorveglianza, crea un canale di streaming
 
-				// controlla che vi sia già una richiesta streaming in corso sul thread specificato.
-				// Se non c'è nessuna richiesta, crea un nuovo streaming
-				if (this.youTubeLiveStreamRequestors.containsValue(incomingCommand.getBody())) { // c'è già una richiesta in corso.
+				// controlla che vi sia giï¿½ una richiesta streaming in corso sul thread specificato.
+				// Se non c'ï¿½ nessuna richiesta, crea un nuovo streaming
+				if (this.youTubeLiveStreamRequestors.containsValue(incomingCommand.getBody())) { // c'ï¿½ giï¿½ una richiesta in corso.
 
 					// stampa un messaggio di log
 					printLog(LogTopics.LOG_TOPIC_VSURV,
@@ -1912,7 +1912,7 @@ public class DomoticCore {
 
 				} else {
 
-					// non c'è una richiesta in corso per il thread specificato.
+					// non c'ï¿½ una richiesta in corso per il thread specificato.
 					// registra la richiesta e avvia la creazione dello stream
 					printLog(LogTopics.LOG_TOPIC_VSURV,
 							String.format("Live streaming request registered for requestor:\"%s\", camera ID: \"%s\"",
@@ -2087,6 +2087,7 @@ public class DomoticCore {
 			}
 			
 		case "__notify_motion_event":
+			
 			if(this.telegramBotActive && this.motionComm!=null){
 				
 				// dispatch the message to all the user who subsribed the topic relevant to the frame update of this camera
@@ -2095,6 +2096,13 @@ public class DomoticCore {
 						"motionupdates_camera_" + incomingCommand.getBody(), false, null, -1, 10000);
 				
 			}
+			
+			if(this.isFCMServiceEnabled) { // the Firebase Cloud Messaging service is enabled
+				
+				
+			}
+				
+			
 			return null;
 			
 		default:
@@ -2477,7 +2485,7 @@ public class DomoticCore {
 							break;
 
 						case "FCMKey":
-							this.notificationsEnabled = true;
+							this.isFCMServiceEnabled = true;
 							this.fcmServiceKey = argument;
 							break;
 
@@ -3188,11 +3196,9 @@ public class DomoticCore {
 								.setValue(eventData, new CompletionListener() {
 
 									@Override
-									public void onComplete(DatabaseError error, DatabaseReference ref) {
+									public void onComplete(DatabaseError error, DatabaseReference ref) { // the Events Node in the Firebase Database has been uploaded
 
-										// the Events Node in the Firebase Database has been successfully updated
-
-										if (error == null) {
+										if (error == null) { // with no errors
 
 											// send a notification via Firebase Cloud Messaging service
 
@@ -3200,18 +3206,18 @@ public class DomoticCore {
 
 											String notificationID;
 
-											if (DomoticCore.this.notificationsEnabled) {
+											if (DomoticCore.this.isFCMServiceEnabled) {
 
 												JSONObject data = new JSONObject(); // payload
 												data.put("eventID", eventVideoID);
 
 												notificationID = sendFCM(DomoticCore.this.fcmServiceKey,
-														"/topics/" + DomoticCore.this.groupName, "Motion detected",
+														"/topics/" + DomoticCore.this.groupName, "Video of the motion event has been uploaded.",
 														cameraName, data.toString());
 
-											} else {
-
-												notificationID = "N/A";
+											} else { // with errors
+ 
+												notificationID = "<ERROR>";
 
 											}
 
@@ -3435,8 +3441,7 @@ public class DomoticCore {
 		result.append(String.format(" Local IP: %s\n",  getLocalIPAddresses()));
 		
 		return result.toString();
-		
-		
+				
 	}
 
 }

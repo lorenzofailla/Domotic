@@ -37,7 +37,7 @@ import static apps.java.loref.LogUtilities.debugLog_GRAYXTERM;
 
 
 /**
- * TODO Put here a description of what this class does.
+ * Provides a simple and effective way to monitor the internet connectivity.
  *
  * @author lore_f. Created 23 dic 2018.
  */

@@ -8,6 +8,7 @@
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8">
 		<attributes>
+			<attribute name="module" value="true"/>
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
@@ -16,13 +17,12 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry combineaccessrules="false" kind="src" path="/General Utilities Libraries"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/TerminalScreen"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/MotionComm"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/FirebaseCloudUploader"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/YouTubeComm"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/SocketResponder"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/General Utilities Libraries"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/InternetConnectionCheck"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/MotionComm"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/SocketResponder"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/TelegramBotComm"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/YouTubeComm"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
